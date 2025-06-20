@@ -1,80 +1,171 @@
-import React, { useState } from 'react';
-import { ChevronLeft, ChevronRight, Home, User, FileText, Mail, Search, Menu, LogOut, ShoppingCart, Package, Users, Box, BookUser, Workflow, IdCardLanyard, FileTextIcon, Database } from 'lucide-react';
-import Dashboard from '../pages/dashboard';
-import CastingOrder from '../pages/CastingOrder';
-import Orders from '../pages/Orders';
-import { useNavigate } from 'react-router-dom';
-import UserComponent from '../pages/User';
-import Product from '../pages/Product';
-import ClientMaster from '../pages/ClientMaster';
-import OperationType from '../pages/OperationTypeMaster';
-import Report from '../pages/Report';
-import logo from '../assets/OTPlogo.png'
+import React, { useState } from "react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Home,
+  User,
+  FileText,
+  Mail,
+  Search,
+  Menu,
+  LogOut,
+  ShoppingCart,
+  Package,
+  Users,
+  Box,
+  BookUser,
+  Workflow,
+  IdCardLanyard,
+  FileTextIcon,
+  Database,
+} from "lucide-react";
+import Dashboard from "../pages/dashboard";
+import CastingOrder from "../pages/CastingOrder";
+import Orders from "../pages/Orders";
+import { useNavigate } from "react-router-dom";
+import UserComponent from "../pages/User";
+import Product from "../pages/Product";
+import ClientMaster from "../pages/ClientMaster";
+import OperationType from "../pages/OperationTypeMaster";
+import Report from "../pages/Report";
+import logo from "../assets/OTPlogo.png";
+import { useAuth, useRouteGuard } from "../pages/login/ProtectedRoute";
 
 export default function Sidebar() {
+  const { user, logout, isLoading } = useAuth();
   const [isCollapsed, setIsCollapsed] = useState(true);
-  const [currentPage, setCurrentPage] = useState('Dashboard');
+  const [currentPage, setCurrentPage] = useState("Dashboard");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [userName] = useState('Admin');
+  const [currentRoute, setCurrentRoute] = useState('/dashboard');
 
-  const navigation = useNavigate()
+  // const [userName] = useState(user?.fullName || "User");
+  const userName = user?.fullName || 'User';
 
-  const menuItems = [
-    { icon: Home, label: 'Dashboard', component: Dashboard },
-    { icon: Box, label: 'Casting Order', component: CastingOrder },
-    { icon: Database, label: 'Orders', component: Orders },
-    { icon: Users, label: 'User', component: UserComponent },
-    { icon: Package, label: 'Products', component: Product },
-    { icon: IdCardLanyard, label: 'Client Master', component: ClientMaster },
-    { icon: Workflow, label: 'Operation Type', component: OperationType },
-    { icon: FileTextIcon, label: 'Report', component: Report },
-  ];
+  const { canAccess } = useRouteGuard();
+
+  const navigation = useNavigate();
 
   const toggleSidebar = () => {
     setIsCollapsed(!isCollapsed);
   };
 
-  const handleMenuClick = (label) => {
-    setCurrentPage(label);
+  const handleMenuClick = (route,label) => {
+      setCurrentPage(label);     // for showing label in header
+  setCurrentRoute(route);
   };
 
   const toggleDropdown = () => {
     setIsDropdownOpen(!isDropdownOpen);
   };
 
+  // const handleLogout = () => {
+  //   console.log("Logging out...");
+  //   // logout();
+  //   navigation("/");
+  //   setIsDropdownOpen(false);
+  // };
+
   const handleLogout = () => {
-    navigation('/')
-    setIsDropdownOpen(false);
+  logout();            // centralised cleanup
+  navigation('/');
+  setIsDropdownOpen(false);
+};
+
+  if (isLoading) {
+  return (
+    <div className="flex items‑center justify‑center h‑screen bg‑gray‑100">
+      <div className="text‑gray‑600">Loading&nbsp;...</div>
+    </div>
+  );
+}
+
+  // const menuItems = [
+  //   { icon: Home, label: 'Dashboard', component: Dashboard },
+  //   { icon: Box, label: 'Casting Order', component: CastingOrder },
+  //   { icon: Database, label: 'Orders', component: Orders },
+  //   { icon: Users, label: 'User', component: UserComponent },
+  //   { icon: Package, label: 'Products', component: Product },
+  //   { icon: IdCardLanyard, label: 'Client Master', component: ClientMaster },
+  //   { icon: Workflow, label: 'Operation Type', component: OperationType },
+  //   { icon: FileTextIcon, label: 'Report', component: Report },
+  // ];
+
+  const menuItems = [
+    { icon: Home, label: "Dashboard", route: "/dashboard" },
+    { icon: Box, label: "Casting Order", route: "/casting-orders" },
+    { icon: Database, label: "Orders", route: "/orders" },
+    { icon: Users, label: "User", route: "/user" },
+    { icon: Package, label: "Products", route: "/products" },
+    { icon: IdCardLanyard, label: "Client Master", route: "/client-master" },
+    { icon: Workflow, label: "Operation Type", route: "/operation-type" },
+    { icon: FileTextIcon, label: "Report", route: "/report" },
+  ];
+
+  // Only render items user can access
+  const filteredMenuItems = menuItems.filter((item) => canAccess(item.route));
+
+  const componentMap = {
+    "/dashboard": Dashboard,
+    "/casting-orders": CastingOrder,
+    "/orders": Orders,
+    "/user": UserComponent,
+    "/products": Product,
+    "/client-master": ClientMaster,
+    "/operation-type": OperationType,
+    "/report": Report,
   };
 
   // Get current page component
+  // const getCurrentPageComponent = () => {
+  //   const currentMenuItem = menuItems.find(
+  //     (item) => item.label === currentPage
+  //   );
+  //   const Component = currentMenuItem ? currentMenuItem.component : Dashboard;
+  //   return <Component />;
+  // };
+
+  // const getCurrentPageComponent = () => {
+  //   const currentMenuItem = menuItems.find(
+  //     (item) => item.label === currentPage
+  //   );
+  //   const Component = currentMenuItem
+  //     ? componentMap[currentMenuItem.route]
+  //     : Dashboard;
+  //   return <Component />;
+  // };
+
   const getCurrentPageComponent = () => {
-    const currentMenuItem = menuItems.find(item => item.label === currentPage);
-    const Component = currentMenuItem ? currentMenuItem.component : Dashboard;
-    return <Component />;
-  };
+  const Component = componentMap[currentRoute] || Dashboard;
+  return <Component />;
+};
 
   return (
     <div className="flex h-screen bg-gray-100">
       {/* Sidebar */}
-      <div className={`bg-[#002981] text-white transition-all duration-300 ease-in-out flex flex-col md:relative md:z-auto fixed left-0 top-0 h-full z-40 shadow-xl ${
-        isCollapsed 
-          ? 'md:w-20 -translate-x-full md:translate-x-0' 
-          : 'w-64'
-      }`}>
-        
+      <div
+        className={`bg-[#002981] text-white transition-all duration-300 ease-in-out flex flex-col md:relative md:z-auto fixed left-0 top-0 h-full z-40 shadow-xl ${
+          isCollapsed ? "md:w-20 -translate-x-full md:translate-x-0" : "w-64"
+        }`}
+      >
         {/* Sidebar Header */}
         <div className="p-4 border-b border-slate-700">
           <div className={"flex items-center justify-between"}>
-            <img src={logo} className={`bg-white rounded-full m-auto w-[150px] shadow-[0px_0px_10px_3px_#fff] hover:shadow-[0px_0px_15px_5px_#fff] ring-white font-bold text-xl transition-opacity duration-300 ${
-              isCollapsed ? 'opacity-0 overflow-hidden' : 'opacity-100'
-            }`}/>
+            <img
+              src={logo}
+              className={`bg-white rounded-full m-auto w-[150px] shadow-[0px_0px_10px_3px_#fff] hover:shadow-[0px_0px_15px_5px_#fff] ring-white font-bold text-xl transition-opacity duration-300 ${
+                isCollapsed ? "opacity-0 overflow-hidden" : "opacity-100"
+              }`}
+            />
             <button
               onClick={toggleSidebar}
               className=" md:hidden p-2 rounded-lg hover:bg-[#004181] transition-colors"
-              aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+              aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
             >
-              {isCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+              {isCollapsed ? (
+                <ChevronRight size={20} />
+              ) : (
+                <ChevronLeft size={20} />
+              )}
             </button>
           </div>
         </div>
@@ -82,36 +173,57 @@ export default function Sidebar() {
         {/* Navigation */}
         <nav className="flex-1 p-4">
           <ul className="space-y-2">
-            {menuItems.map((item, index) => {
+            {filteredMenuItems.map((item, index) => {
               const Icon = item.icon;
               return (
                 <li key={index}>
                   <button
-                    onClick={() => handleMenuClick(item.label)}
+                    onClick={() => handleMenuClick(item.route,item.label)}
                     className={`w-full flex items-center p-3 rounded-lg hover:bg-[#004181] transition-colors group ${
-                      currentPage === item.label ? 'bg-[#004181]' : ''
+                      currentRoute === item.route ? "bg-[#004181]" : ""
                     }`}
-                    title={isCollapsed ? item.label : ''}
+                    title={isCollapsed ? item.label : ""}
                   >
                     <Icon size={20} className="flex-shrink-0" />
-                    <span className={`ml-3 transition-all duration-300 text-left ${
-                      isCollapsed ? 'opacity-0 w-0 overflow-hidden hidden' : 'opacity-100'
-                    }`}>
+                    <span
+                      className={`ml-3 transition-all duration-300 text-left ${
+                        isCollapsed
+                          ? "opacity-0 w-0 overflow-hidden hidden"
+                          : "opacity-100"
+                      }`}
+                    >
                       {item.label}
                     </span>
                   </button>
                 </li>
               );
             })}
+            {/* {filteredMenuItems.map((item, index) => {
+              const Icon = item.icon;
+              return (
+                <li key={index}>
+                  <button
+                    onClick={() => handleMenuClick(item.route)}
+                    className={`... ${
+                      currentRoute === item.route ? "bg-[#004181]" : ""
+                    }`}
+                  >
+                    <Icon size={20} />
+                    <span>{item.label}</span>
+                  </button>
+                </li>
+              );
+            })} */}
           </ul>
         </nav>
       </div>
 
       {/* Main Content Area */}
-      <div className={`flex-1 flex flex-col transition-all duration-300 ${
-        isCollapsed ? '' : 'md:ml-0'
-      }`}>
-        
+      <div
+        className={`flex-1 flex flex-col transition-all duration-300 ${
+          isCollapsed ? "" : "md:ml-0"
+        }`}
+      >
         {/* Header */}
         <header className="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
           <div className="flex items-center justify-between">
