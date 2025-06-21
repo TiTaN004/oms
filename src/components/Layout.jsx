@@ -364,9 +364,6 @@ export default function Sidebar() {
     canAccess(`/dashboard${item.route}`)
   );
 
-
-  console.log(canAccess('/dashboard/casting-orders'), canAccess('/dashboard/orders'), canAccess('/dashboard/user'), canAccess('/dashboard/products'), canAccess('/dashboard/client-master'), canAccess('/dashboard/operation-type'), canAccess('/dashboard/report'))
-
   // Get current page info based on location
   const getCurrentPageInfo = () => {
     const currentPath = location.pathname.replace("/dashboard", "") || "";
