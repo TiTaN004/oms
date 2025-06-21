@@ -152,18 +152,18 @@ export const useRouteGuard = () => {
     // Define route permissions
     const adminOnlyRoutes = [
       '/dashboard',
-      '/casting-orders',
-      '/orders',
-      '/user',
-      '/products',
-      '/client-master',
-      '/operation-type',
-      '/report'
+      '/dashboard/casting-orders',
+      '/dashboard/orders',
+      '/dashboard/user',
+      '/dashboard/products',
+      '/dashboard/client-master',
+      '/dashboard/operation-type',
+      '/dashboard/report'
     ];
     
     const userRoutes = [
       '/dashboard',
-      '/orders',
+      '/dashboard/orders',
     ];
     
     // Admin can access everything
