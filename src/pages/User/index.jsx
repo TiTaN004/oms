@@ -52,8 +52,6 @@ export default function index() {
 
   // Dropdown data states
   const [userType, setUserType] = useState();
-  // const [users, setUsers] = useState(sampleUsers);
-  // const [products, setProducts] = useState(sampleProducts);
   const [loading, setLoading] = useState(true);
 
   // Fetch dropdown data from PHP backend
@@ -63,19 +61,6 @@ export default function index() {
 
   const fetchUser = async () => {
     try {
-      // Replace these with actual PHP API endpoints
-      // const clientsResponse = await fetch('/api/clients');
-      // const usersResponse = await fetch('/api/users');
-      // const productsResponse = await fetch('/api/products');
-
-      // const clientsData = await clientsResponse.json();
-      // const usersData = await usersResponse.json();
-      // const productsData = await productsResponse.json();
-
-      // setClients(clientsData);
-      // setUsers(usersData);
-      // setProducts(productsData);
-
       const response = await fetch(API_ENDPOINTS.USERS, {
         method: "GET",
         headers: {
@@ -86,7 +71,6 @@ export default function index() {
       const result = await response.json();
       setData(result.data);
 
-
       const resType = await fetch(API_ENDPOINTS.OPERATIONS, {
         method: "GET",
         headers: {
@@ -96,38 +80,6 @@ export default function index() {
 
       const typeData = await resType.json();
       setUserType(typeData.data);
-      console.log(typeData.data)
-      // console.log("Fetched user types from PHP backend:", typeData.data);
-
-      // console.log("Fetched user data from PHP backend:", result.data);
-
-      // For demo purposes, using sample data
-      // console.log("Fetching dropdown data from PHP backend...");
-    } catch (error) {
-      console.error("Error fetching dropdown data:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchDropdownData = async () => {
-    setLoading(true);
-    try {
-      // Replace these with actual PHP API endpoints
-      // const clientsResponse = await fetch('/api/clients');
-      // const usersResponse = await fetch('/api/users');
-      // const productsResponse = await fetch('/api/products');
-
-      // const clientsData = await clientsResponse.json();
-      // const usersData = await usersResponse.json();
-      // const productsData = await productsResponse.json();
-
-      // setClients(clientsData);
-      // setUsers(usersData);
-      // setProducts(productsData);
-
-      // For demo purposes, using sample data
-      console.log("Fetching dropdown data from PHP backend...");
     } catch (error) {
       console.error("Error fetching dropdown data:", error);
     } finally {
@@ -139,16 +91,11 @@ export default function index() {
     setSearch(e.target.value);
   };
 
-  // const filteredData = data.filter((item) =>
-  //   item.userName.toLowerCase().includes(search.toLowerCase())
-  // );
-
   const filteredData = data.filter((item) =>
     (item.userName || "").toLowerCase().includes(search.toLowerCase())
   );
 
   const handleAddOrder = () => {
-    console.log("click onClick={handleAddOrder}");
     setShowAddForm(true);
   };
 
@@ -178,16 +125,10 @@ export default function index() {
     setLoading(true);
 
     try {
-      console.log("formdata ", formData.operationTypeID);
-
       // Get selected names for display
       const selectedUserType = userType.find(
         (c) => c.id.toString() === formData.operationTypeID
       );
-      // const selectedUser = users.find((u) => u.id.toString() === formData.user);
-      // const selectedProduct = products.find(
-      //   (p) => p.id.toString() === formData.product
-      // );
 
       // Prepare data for PHP API
       const userData = {
@@ -199,8 +140,6 @@ export default function index() {
         operationTypeID: formData.operationTypeID,
         emailID: formData.emailID,
       };
-
-      console.log("selected ", selectedUserType);
 
       if (editingId) {
         // For demo purposes, update order locally
@@ -215,22 +154,16 @@ export default function index() {
         };
         // Update existing order
         const response = await fetch(API_ENDPOINTS.USERS, {
-          method: 'PUT',
+          method: "PUT",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
-          body: JSON.stringify(updatedUser)
+          body: JSON.stringify(updatedUser),
         });
-
-        
-
-        console.log("after update ", updatedUser.operationTypeID);
 
         setData((prev) =>
           prev.map((item) => (item.userID === editingId ? updatedUser : item))
         );
-
-        console.log("User updated successfully:", userData);
         setEditingId(null);
       } else {
         // For demo purposes, create new order locally
@@ -244,17 +177,14 @@ export default function index() {
         };
         // Create new order
         const response = await fetch(API_ENDPOINTS.USERS, {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
-          body: JSON.stringify(newUser)
+          body: JSON.stringify(newUser),
         });
 
-
         setData((prev) => [...prev, newUser]);
-
-        console.log("User created successfully:", userData);
       }
 
       handleGoBack();
@@ -268,18 +198,11 @@ export default function index() {
   };
 
   const handleAddNewItem = (type) => {
-    // This would open a modal or navigate to add new client/user/product
-    alert(`Add new ${type} functionality would be implemented here`);
-    nav(`/${type.replace(" ", "-").toLowerCase()}`);
-    // Example: window.open(`/add-${type}`, '_blank');
+    nav(`/dashboard/${type.replace(" ", "-").toLowerCase()}`);
   };
 
   // Handle Edit Order
   const handleEdit = (user) => {
-    // Find the corresponding IDs for the dropdowns
-    // const UserTypeId = userType.find((c) => c.operationName === user.operationName)?.id || "";
-    // console.log(UserTypeId);
-
     setFormData({
       userID: user.userID,
       fullName: user.fullName,
@@ -296,7 +219,6 @@ export default function index() {
 
   // Handle Delete Order
   const handleDelete = (id) => {
-    console.log("clicked");
     setDeleteId(id);
     setShowDeleteConfirm(true);
   };
@@ -306,17 +228,15 @@ export default function index() {
     try {
       // Call PHP API to delete
       const response = await fetch(`${API_ENDPOINTS.USERS}/?id=${deleteId}`, {
-        method: 'DELETE'
+        method: "DELETE",
       });
-      
+
       if (!response.ok) {
-        throw new Error('Failed to delete order');
+        throw new Error("Failed to delete order");
       }
 
       // For demo purposes, delete locally
       setData((prev) => prev.filter((item) => item.userID !== deleteId));
-
-      console.log("User deleted successfully:", deleteId);
     } catch (error) {
       console.error("Error deleting User:", error);
       alert("Failed to delete User. Please try again.");

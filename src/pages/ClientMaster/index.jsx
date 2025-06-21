@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Plus, Pencil, Trash2, ArrowLeft, Save } from "lucide-react";
+import API_ENDPOINTS from "../../utils/apiConfig";
 const sampleData = [
   {
     id: 5,
@@ -28,27 +29,22 @@ export default function index() {
 
   // Fetch dropdown data from PHP backend
   useEffect(() => {
-    fetchDropdownData();
+    fetchClientData();
   }, []);
 
-  const fetchDropdownData = async () => {
+  const fetchClientData = async () => {
     setLoading(true);
     try {
-      // Replace these with actual PHP API endpoints
-      // const clientsResponse = await fetch('/api/clients');
-      // const usersResponse = await fetch('/api/users');
-      // const productsResponse = await fetch('/api/products');
+      const response = await fetch(API_ENDPOINTS.CLIENTS, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
 
-      // const clientsData = await clientsResponse.json();
-      // const usersData = await usersResponse.json();
-      // const productsData = await productsResponse.json();
-
-      // setClients(clientsData);
-      // setUsers(usersData);
-      // setProducts(productsData);
-
+      const clientsData = await response.json();
+      setData(clientsData.data);
       // For demo purposes, using sample data
-      console.log("Fetching dropdown data from PHP backend...");
     } catch (error) {
       console.error("Error fetching dropdown data:", error);
     } finally {
@@ -57,7 +53,6 @@ export default function index() {
   };
 
   const handleAddOrder = () => {
-    console.log("click onClick={handleAddOrder}");
     setShowAddForm(true);
   };
 
@@ -84,11 +79,6 @@ export default function index() {
     setLoading(true);
 
     try {
-      // const selectedUser = users.find((u) => u.id.toString() === formData.user);
-      // const selectedProduct = products.find(
-      //   (p) => p.id.toString() === formData.product
-      // );
-
       // Prepare data for PHP API
       const userData = {
         id: formData.id,
@@ -97,48 +87,43 @@ export default function index() {
       };
 
       if (editingId) {
-        // Update existing order
-        // const response = await fetch(`/api/casting-orders/${editingId}`, {
-        //   method: 'PUT',
-        //   headers: {
-        //     'Content-Type': 'application/json',
-        //   },
-        //   body: JSON.stringify(orderData)
-        // });
-
         // For demo purposes, update order locally
         const updatedUser = {
           id: formData.id,
           clientName: formData.clientName,
           isActive: formData.isActive,
         };
+        // Update existing order
+        const response = await fetch(API_ENDPOINTS.CLIENTS, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(updatedUser),
+        });
 
         setData((prev) =>
           prev.map((item) => (item.id === editingId ? updatedUser : item))
         );
 
-        console.log("User updated successfully:", userData);
         setEditingId(null);
       } else {
-        // Create new order
-        // const response = await fetch('/api/casting-orders', {
-        //   method: 'POST',
-        //   headers: {
-        //     'Content-Type': 'application/json',
-        //   },
-        //   body: JSON.stringify(orderData)
-        // });
-
         // For demo purposes, create new order locally
         const newUser = {
-          id: `CO${String(data.length + 1).padStart(4, "0")}`,
           clientName: formData.clientName,
           isActive: formData.isActive,
         };
 
-        setData((prev) => [...prev, newUser]);
+        // Create new order
+        const response = await fetch(API_ENDPOINTS.CLIENTS, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(newUser),
+        });
 
-        console.log("User created successfully:", userData);
+        setData((prev) => [...prev, newUser]);
       }
 
       handleGoBack();
@@ -146,14 +131,9 @@ export default function index() {
       console.error("Error saving User:", error);
       alert("Failed to save User. Please try again.");
     } finally {
+      fetchClientData();
       setLoading(false);
     }
-  };
-
-  const handleAddNewItem = (type) => {
-    // This would open a modal or navigate to add new client/user/product
-    alert(`Add new ${type} functionality would be implemented here`);
-    // Example: window.open(`/add-${type}`, '_blank');
   };
 
   // Handle Edit Order
@@ -170,7 +150,6 @@ export default function index() {
 
   // Handle Delete Order
   const handleDelete = (id) => {
-    console.log("clicked");
     setDeleteId(id);
     setShowDeleteConfirm(true);
   };
@@ -179,22 +158,21 @@ export default function index() {
     setLoading(true);
     try {
       // Call PHP API to delete
-      // const response = await fetch(`/api/casting-orders/${deleteId}`, {
-      //   method: 'DELETE'
-      // });
-      //
-      // if (!response.ok) {
-      //   throw new Error('Failed to delete order');
-      // }
+      const response = await fetch(`${API_ENDPOINTS.CLIENTS}/?id=${deleteId}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete order");
+      }
 
       // For demo purposes, delete locally
       setData((prev) => prev.filter((item) => item.id !== deleteId));
-
-      console.log("User deleted successfully:", deleteId);
     } catch (error) {
       console.error("Error deleting User:", error);
       alert("Failed to delete User. Please try again.");
     } finally {
+      fetchClientData();
       setLoading(false);
       setShowDeleteConfirm(false);
       setDeleteId(null);
