@@ -16,8 +16,10 @@ export const API_ENDPOINTS = {
   CASTING_ORDERS: `${API_BASE_URL}/casting-orders.php`,
 
   // Master data
-  PRODUCTS: `${API_BASE_URL}/products.php`,
   WEIGHT_TYPES: `${API_BASE_URL}/weight-types.php`,
+
+  //products
+  PRODUCTS: `${API_BASE_URL}/product/product.php`,
 
   //client master
   CLIENTS: `${API_BASE_URL}/client-master/client-master.php`,
