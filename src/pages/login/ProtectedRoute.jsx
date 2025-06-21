@@ -31,29 +31,41 @@ export const AuthProvider = ({ children }) => {
         return;
       }
 
-      // Verify token with backend
-      const response = await fetch(API_ENDPOINTS.VERIFY_TOKEN, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+      // Parse stored user data immediately
+      const parsedUserData = JSON.parse(userData);
+      
+      // Set user data immediately from localStorage
+      setUser(parsedUserData);
+      setIsAuthenticated(true);
+
+      // Verify token with backend (optional background check)
+      try {
+        const response = await fetch(API_ENDPOINTS.VERIFY_TOKEN, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || !data.data?.valid) {
+          // Invalid token, clear storage
+          localStorage.removeItem('authToken');
+          localStorage.removeItem('userData');
+          setIsAuthenticated(false);
+          setUser(null);
         }
-      });
-
-      const data = await response.json();
-
-      if (response.ok && data.data.valid) {
-        setIsAuthenticated(true);
-        setUser(data.data);
-      } else {
-        // Invalid token, clear storage
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('userData');
-        setIsAuthenticated(false);
-        setUser(null);
+      } catch (verifyError) {
+        console.warn('Token verification failed:', verifyError);
+        // Don't clear auth state on network error, just log it
       }
     } catch (error) {
       console.error('Auth check failed:', error);
+      // Clear storage on parsing error
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('userData');
       setIsAuthenticated(false);
       setUser(null);
     } finally {
@@ -160,6 +172,11 @@ export const useRouteGuard = () => {
     // Regular users can only access specific routes
     if (userRoutes.some(userRoute => route.startsWith(userRoute))) {
       return true;
+    }
+    
+    // Check if it's an admin-only route
+    if (adminOnlyRoutes.some(adminRoute => route.startsWith(adminRoute))) {
+      return false;
     }
     
     return false;

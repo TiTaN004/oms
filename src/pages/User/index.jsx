@@ -1,21 +1,23 @@
 import React, { useEffect, useState } from "react";
 import { Plus, Pencil, Trash2, ArrowLeft, Save } from "lucide-react";
+import API_ENDPOINTS from "../../utils/apiConfig";
+import { useNavigate } from "react-router-dom";
 const sampleData = [
   {
-    srno: 5,
+    userID: 5,
     name: "fortune casting",
-    UserName: "Tunning",
-    Mobile: "jasmin bhai",
-    Password: "LOCK DABI",
+    userName: "Tunning",
+    mobileNo: "jasmin bhai",
+    password: "LOCK DABI",
     Email: "t2@gmail.com",
     UserType: "GE",
   },
   {
-    srno: 8,
+    userID: 8,
     name: "fortune casting",
-    UserName: "Tunning",
-    Mobile: "jasmin bhai",
-    Password: "LOCK DABI",
+    userName: "Tunning",
+    mobileNo: "jasmin bhai",
+    password: "LOCK DABI",
     Email: "t@gmail.com",
     UserType: "Admin",
   },
@@ -37,25 +39,76 @@ export default function index() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
   const [formData, setFormData] = useState({
-    srno: "",
-    name: "",
-    UserName: "",
-    Mobile: "",
-    Password: "",
-    UserType: "",
-    Email: "",
+    userID: "",
+    fullName: "",
+    userName: "",
+    mobileNo: "",
+    password: "",
+    operationTypeID: "",
+    emailID: "",
   });
 
+  const nav = useNavigate();
+
   // Dropdown data states
-  const [userType, setUserType] = useState(sampleUserType);
+  const [userType, setUserType] = useState();
   // const [users, setUsers] = useState(sampleUsers);
   // const [products, setProducts] = useState(sampleProducts);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   // Fetch dropdown data from PHP backend
   useEffect(() => {
-    fetchDropdownData();
+    fetchUser();
   }, []);
+
+  const fetchUser = async () => {
+    try {
+      // Replace these with actual PHP API endpoints
+      // const clientsResponse = await fetch('/api/clients');
+      // const usersResponse = await fetch('/api/users');
+      // const productsResponse = await fetch('/api/products');
+
+      // const clientsData = await clientsResponse.json();
+      // const usersData = await usersResponse.json();
+      // const productsData = await productsResponse.json();
+
+      // setClients(clientsData);
+      // setUsers(usersData);
+      // setProducts(productsData);
+
+      const response = await fetch(API_ENDPOINTS.USERS, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      const result = await response.json();
+      setData(result.data);
+
+
+      const resType = await fetch(API_ENDPOINTS.OPERATIONS, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      const typeData = await resType.json();
+      setUserType(typeData.data);
+      console.log(typeData.data)
+      // console.log("Fetched user types from PHP backend:", typeData.data);
+
+      // console.log("Fetched user data from PHP backend:", result.data);
+
+      // For demo purposes, using sample data
+      // console.log("Fetching dropdown data from PHP backend...");
+    } catch (error) {
+      console.error("Error fetching dropdown data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchDropdownData = async () => {
     setLoading(true);
@@ -86,27 +139,31 @@ export default function index() {
     setSearch(e.target.value);
   };
 
+  // const filteredData = data.filter((item) =>
+  //   item.userName.toLowerCase().includes(search.toLowerCase())
+  // );
+
   const filteredData = data.filter((item) =>
-    item.name.toLowerCase().includes(search.toLowerCase())
+    (item.userName || "").toLowerCase().includes(search.toLowerCase())
   );
 
   const handleAddOrder = () => {
-    console.log("click onClick={handleAddOrder}")
+    console.log("click onClick={handleAddOrder}");
     setShowAddForm(true);
   };
 
   const handleGoBack = () => {
     setShowAddForm(false);
     setFormData({
-      srno: "",
+      userID: "",
       name: "",
-      UserName: "",
-      Mobile: "",
-      Password: "",
-      UserType: "",
-      Email: "",
+      userName: "",
+      mobileNo: "",
+      password: "",
+      operationTypeID: "",
+      emailID: "",
     });
-    setEditingId(null)
+    setEditingId(null);
   };
 
   const handleFormChange = (e) => {
@@ -121,11 +178,11 @@ export default function index() {
     setLoading(true);
 
     try {
-      console.log("formdata ",formData.UserType)
+      console.log("formdata ", formData.operationTypeID);
 
       // Get selected names for display
       const selectedUserType = userType.find(
-        (c) => c.id.toString() === formData.UserType
+        (c) => c.id.toString() === formData.operationTypeID
       );
       // const selectedUser = users.find((u) => u.id.toString() === formData.user);
       // const selectedProduct = products.find(
@@ -134,67 +191,66 @@ export default function index() {
 
       // Prepare data for PHP API
       const userData = {
-        srno: formData.srno,
-        name: formData.name,
-        UserName: formData.UserName,
-        Mobile: formData.Mobile,
-        Password: formData.Password,
-        UserType: formData.UserType,
-        Email: formData.Email,
+        userID: formData.userID,
+        fullName: formData.fullName,
+        userName: formData.userName,
+        mobileNo: formData.mobileNo,
+        password: formData.password,
+        operationTypeID: formData.operationTypeID,
+        emailID: formData.emailID,
       };
 
-      console.log("selected ",selectedUserType)
+      console.log("selected ", selectedUserType);
 
       if (editingId) {
-        // Update existing order
-        // const response = await fetch(`/api/casting-orders/${editingId}`, {
-        //   method: 'PUT',
-        //   headers: {
-        //     'Content-Type': 'application/json',
-        //   },
-        //   body: JSON.stringify(orderData)
-        // });
-
         // For demo purposes, update order locally
         const updatedUser = {
-          srno: editingId,
-          name: formData.name,
-          UserName: formData.UserName,
-          Mobile: formData.Mobile,
-          Password: formData.Password,
-          UserType: selectedUserType?.name || "",
-          Email: formData.Email,
+          userID: editingId,
+          fullName: formData.fullName,
+          userName: formData.userName,
+          mobileNo: formData.mobileNo,
+          password: formData.password,
+          operationTypeID: selectedUserType?.id || "",
+          emailID: formData.emailID,
         };
+        // Update existing order
+        const response = await fetch(API_ENDPOINTS.USERS, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(updatedUser)
+        });
 
-      console.log("after update ",updatedUser.UserType)
         
 
+        console.log("after update ", updatedUser.operationTypeID);
+
         setData((prev) =>
-          prev.map((item) => (item.srno === editingId ? updatedUser : item))
+          prev.map((item) => (item.userID === editingId ? updatedUser : item))
         );
 
         console.log("User updated successfully:", userData);
-        setEditingId(null)
+        setEditingId(null);
       } else {
-        // Create new order
-        // const response = await fetch('/api/casting-orders', {
-        //   method: 'POST',
-        //   headers: {
-        //     'Content-Type': 'application/json',
-        //   },
-        //   body: JSON.stringify(orderData)
-        // });
-
         // For demo purposes, create new order locally
         const newUser = {
-          srno: `CO${String(data.length + 1).padStart(4, "0")}`,
-          name: formData.name,
-          UserName: formData.UserName,
-          Mobile: formData.Mobile,
-          Password: formData.Password,
-          UserType: selectedUserType?.UserType || "",
-          Email: formData.Email,
+          fullName: formData.fullName,
+          userName: formData.userName,
+          mobileNo: formData.mobileNo,
+          password: formData.password,
+          operationTypeID: selectedUserType?.id || "",
+          emailID: formData.emailID,
         };
+        // Create new order
+        const response = await fetch(API_ENDPOINTS.USERS, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(newUser)
+        });
+
 
         setData((prev) => [...prev, newUser]);
 
@@ -206,6 +262,7 @@ export default function index() {
       console.error("Error saving User:", error);
       alert("Failed to save User. Please try again.");
     } finally {
+      fetchUser();
       setLoading(false);
     }
   };
@@ -213,25 +270,27 @@ export default function index() {
   const handleAddNewItem = (type) => {
     // This would open a modal or navigate to add new client/user/product
     alert(`Add new ${type} functionality would be implemented here`);
+    nav(`/${type.replace(" ", "-").toLowerCase()}`);
     // Example: window.open(`/add-${type}`, '_blank');
   };
 
   // Handle Edit Order
   const handleEdit = (user) => {
     // Find the corresponding IDs for the dropdowns
-    const UserTypeId = userType.find((c) => c.name === user.UserType)?.id || "";
+    // const UserTypeId = userType.find((c) => c.operationName === user.operationName)?.id || "";
+    // console.log(UserTypeId);
 
     setFormData({
-      srno: user.srno,
-      name: user.name,
-      UserName: user.UserName,
-      Mobile: user.Mobile,
-      Password: user.Password,
-      UserType: UserTypeId.toString(),
-      Email: user.Email,
+      userID: user.userID,
+      fullName: user.fullName,
+      userName: user.userName,
+      mobileNo: user.mobileNo,
+      password: user.password,
+      operationTypeID: user.operationTypeID,
+      emailID: user.emailID,
     });
 
-    setEditingId(user.srno);
+    setEditingId(user.userID);
     setShowAddForm(true);
   };
 
@@ -246,16 +305,16 @@ export default function index() {
     setLoading(true);
     try {
       // Call PHP API to delete
-      // const response = await fetch(`/api/casting-orders/${deleteId}`, {
-      //   method: 'DELETE'
-      // });
-      //
-      // if (!response.ok) {
-      //   throw new Error('Failed to delete order');
-      // }
+      const response = await fetch(`${API_ENDPOINTS.USERS}/?id=${deleteId}`, {
+        method: 'DELETE'
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to delete order');
+      }
 
       // For demo purposes, delete locally
-      setData((prev) => prev.filter((item) => item.srno !== deleteId));
+      setData((prev) => prev.filter((item) => item.userID !== deleteId));
 
       console.log("User deleted successfully:", deleteId);
     } catch (error) {
@@ -293,7 +352,7 @@ export default function index() {
         <option value="">{placeholder}</option>
         {options.map((option) => (
           <option key={option.id} value={option.id}>
-            {option.name}
+            {option.operationName}
           </option>
         ))}
       </select>
@@ -324,7 +383,7 @@ export default function index() {
             <span className="hidden sm:inline">Back to User</span>
             <span className="sm:hidden">Back</span>
           </button>
-          <h2 className="text-lg font-semibold">Add New User</h2>
+          <h2 className="text-lg font-semibold cursor-pointer">Add New User</h2>
         </div>
 
         {/* Add Order Form */}
@@ -337,8 +396,8 @@ export default function index() {
               </label>
               <input
                 type="text"
-                name="name"
-                value={formData.name}
+                name="fullName"
+                value={formData.fullName}
                 onChange={handleFormChange}
                 className="w-full border rounded px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Enter size (e.g., 10x20cm)"
@@ -353,8 +412,8 @@ export default function index() {
               </label>
               <input
                 type="email"
-                name="Email"
-                value={formData.Email}
+                name="emailID"
+                value={formData.emailID}
                 onChange={handleFormChange}
                 className="w-full border rounded px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Enter size (e.g., 10x20cm)"
@@ -362,16 +421,16 @@ export default function index() {
               />
             </div>
 
-            {/* UserName */}
+            {/* userName */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                UserName *
+                userName *
               </label>
               <div className="relative">
                 <input
                   type="text"
-                  name="UserName"
-                  value={formData.UserName}
+                  name="userName"
+                  value={formData.userName}
                   onChange={handleFormChange}
                   className="w-full border rounded px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
                   required
@@ -386,8 +445,8 @@ export default function index() {
               </label>
               <input
                 type="text"
-                name="Password"
-                value={formData.Password}
+                name="password"
+                value={formData.password}
                 onChange={handleFormChange}
                 className="w-full border rounded px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Enter size (e.g., 10x20cm)"
@@ -395,15 +454,15 @@ export default function index() {
               />
             </div>
 
-            {/* Mobile No. */}
+            {/* mobileNo No. */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Mobile No. *
+                mobileNo No. *
               </label>
               <input
                 type="text"
-                name="Mobile"
-                value={formData.Mobile}
+                name="mobileNo"
+                value={formData.mobileNo}
                 onChange={handleFormChange}
                 className="w-full border rounded px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Enter size (e.g., 10x20cm)"
@@ -417,12 +476,12 @@ export default function index() {
                 Select UserType *
               </label>
               <CustomDropdown
-                name="UserType"
-                value={formData.UserType}
+                name="operationTypeID"
+                value={formData.operationTypeID}
                 onChange={handleFormChange}
                 options={userType}
                 placeholder="Select User"
-                type="User"
+                type="operation type"
               />
             </div>
           </div>
@@ -484,8 +543,8 @@ export default function index() {
             <tr className="bg-gray-100 text-left ">
               <th className="p-3 font-medium">Sr No.</th>
               <th className="p-3 font-medium">Name</th>
-              <th className="p-3 font-medium">UserName</th>
-              <th className="p-3 font-medium">Mobile</th>
+              <th className="p-3 font-medium">userName</th>
+              <th className="p-3 font-medium">mobileNo</th>
               <th className="p-3 font-medium">Password</th>
               <th className="p-3 font-medium">Action</th>
             </tr>
@@ -493,12 +552,12 @@ export default function index() {
           <tbody>
             {filteredData.length > 0 ? (
               filteredData.map((row) => (
-                <tr key={row.srno} className="border-t-[0.5px]">
-                  <td className="p-3">{row.srno}</td>
-                  <td className="p-3">{row.name}</td>
-                  <td className="p-3">{row.UserName}</td>
-                  <td className="p-3">{row.Mobile}</td>
-                  <td className="p-3">{row.Password}</td>
+                <tr key={row.userID} className="border-t-[0.5px]">
+                  <td className="p-3">{row.userID}</td>
+                  <td className="p-3">{row.fullName}</td>
+                  <td className="p-3">{row.userName}</td>
+                  <td className="p-3">{row.mobileNo}</td>
+                  <td className="p-3">{row.password}</td>
                   <td className="p-3">
                     <div className="flex gap-2">
                       <button
@@ -508,7 +567,7 @@ export default function index() {
                         <Pencil size={16} />
                       </button>
                       <button
-                        onClick={() => handleDelete(row.srno)}
+                        onClick={() => handleDelete(row.userID)}
                         className="text-red-600 hover:underline cursor-pointer"
                       >
                         <Trash2 size={16} />
@@ -528,18 +587,18 @@ export default function index() {
         </table>
       </div>
 
-      {/* Mobile/Tablet Card View */}
+      {/* mobileNo/Tablet Card View */}
       <div className="lg:hidden space-y-4">
         {filteredData.length > 0 ? (
           filteredData.map((row) => (
-            <div key={row.id} className="border rounded-lg p-4 bg-gray-50">
+            <div key={row.userID} className="border rounded-lg p-4 bg-gray-50">
               {/* Card Header */}
               <div className="flex justify-between items-start mb-3">
                 <div>
                   <div className="font-semibold text-sm text-gray-600">
                     Sr. No.
                   </div>
-                  <div className="font-medium">{row.srno}</div>
+                  <div className="font-medium">{row.userID}</div>
                 </div>
                 <div className="flex gap-2">
                   <button
@@ -549,7 +608,7 @@ export default function index() {
                     <Pencil size={16} />
                   </button>
                   <button
-                    onClick={() => handleDelete(row.srno)}
+                    onClick={() => handleDelete(row.userID)}
                     className="text-red-600 hover:bg-red-50 p-2 rounded cursor-pointer"
                   >
                     <Trash2 size={16} />
@@ -561,19 +620,19 @@ export default function index() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                 <div>
                   <span className="font-medium text-gray-600">Name :</span>
-                  <div>{row.name}</div>
+                  <div>{row.fullName}</div>
                 </div>
                 <div>
-                  <span className="font-medium text-gray-600">UserName :</span>
-                  <div>{row.UserName}</div>
+                  <span className="font-medium text-gray-600">userName :</span>
+                  <div>{row.userName}</div>
                 </div>
                 <div>
-                  <span className="font-medium text-gray-600">Mobile :</span>
-                  <div>{row.Mobile}</div>
+                  <span className="font-medium text-gray-600">mobileNo :</span>
+                  <div>{row.mobileNo}</div>
                 </div>
                 <div>
                   <span className="font-medium text-gray-600">Password :</span>
-                  <div>{row.Password}</div>
+                  <div>{row.password}</div>
                 </div>
               </div>
             </div>
@@ -590,53 +649,56 @@ export default function index() {
       </div>
 
       {/* Delete Confirmation Modal */}
-            {showDeleteConfirm && (
-              <div className="fixed inset-0 bg-black/35 bg-opacity-50 flex items-center justify-center z-50">
-                <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
-                      <Trash2 size={20} className="text-red-600" />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900">Delete Order</h3>
-                      <p className="text-sm text-gray-600">
-                        Order ID: {data.find(item => item.id === deleteId)?.id}
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <p className="text-gray-700 mb-6">
-                    Are you sure you want to delete this casting order? This action cannot be undone.
-                  </p>
-                  
-                  <div className="flex gap-3 justify-end">
-                    <button
-                      onClick={cancelDelete}
-                      className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={confirmDelete}
-                      disabled={loading}
-                      className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition disabled:opacity-50 flex items-center gap-2"
-                    >
-                      {loading ? (
-                        <>
-                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                          Deleting...
-                        </>
-                      ) : (
-                        <>
-                          <Trash2 size={16} />
-                          Delete
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </div>
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/35 bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                <Trash2 size={20} className="text-red-600" />
               </div>
-            )}
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Delete Order
+                </h3>
+                <p className="text-sm text-gray-600">
+                  Order ID: {data.find((item) => item.id === deleteId)?.userID}
+                </p>
+              </div>
+            </div>
+
+            <p className="text-gray-700 mb-6">
+              Are you sure you want to delete this casting order? This action
+              cannot be undone.
+            </p>
+
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={cancelDelete}
+                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                disabled={loading}
+                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition disabled:opacity-50 flex items-center gap-2"
+              >
+                {loading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 size={16} />
+                    Delete
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

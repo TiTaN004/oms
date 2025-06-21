@@ -92,9 +92,11 @@ import React, { useState } from "react";
 import logo from "../../assets/OTPlogo.png";
 import { Link, useNavigate } from "react-router-dom";
 import API_ENDPOINTS from "../../utils/apiConfig";
+import { useAuth } from "./ProtectedRoute";
 
 export default function Login() {
   const navigate = useNavigate();
+  const { checkAuthStatus } = useAuth(); // Get checkAuthStatus from context
   const [formData, setFormData] = useState({
     userName: '',
     password: ''
@@ -132,6 +134,9 @@ export default function Login() {
         // Store user data and token
         localStorage.setItem('authToken', data.data[0].token);
         localStorage.setItem('userData', JSON.stringify(data.data[0]));
+        
+        // Update auth context immediately
+        await checkAuthStatus();
         
         // Navigate to dashboard
         navigate('/dashboard/');

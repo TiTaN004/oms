@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { Plus, Pencil, Trash2, ArrowLeft, Save } from "lucide-react";
+import API_ENDPOINTS from "../../utils/apiConfig";
 const sampleData = [
   {
     id: 5,
-    operationType: "fortune casting",
+    operationName: "fortune casting",
     isActive: true,
   },
   {
     id: 6,
-    operationType: "fortune casting",
+    operationName: "fortune casting",
     isActive: true,
   },
 ];
@@ -21,10 +22,10 @@ export default function index() {
   const [deleteId, setDeleteId] = useState(null);
   const [formData, setFormData] = useState({
     id: "",
-    operationType: "",
+    operationName: "",
     isActive: "",
   });
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const handleStatusChange = (id, status) => {
     setData((prev) =>
@@ -34,36 +35,29 @@ export default function index() {
 
   // Fetch dropdown data from PHP backend
   useEffect(() => {
-    fetchDropdownData();
+    fetchOperation();
   }, []);
 
-  const fetchDropdownData = async () => {
-    setLoading(true);
+  const fetchOperation = async () => {
     try {
-      // Replace these with actual PHP API endpoints
-      // const clientsResponse = await fetch('/api/clients');
-      // const usersResponse = await fetch('/api/users');
-      // const productsResponse = await fetch('/api/products');
+      const response = await fetch(API_ENDPOINTS.OPERATIONS, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+       const result = await response.json(); // ⬅️ You need to parse the response
 
-      // const clientsData = await clientsResponse.json();
-      // const usersData = await usersResponse.json();
-      // const productsData = await productsResponse.json();
-
-      // setClients(clientsData);
-      // setUsers(usersData);
-      // setProducts(productsData);
-
-      // For demo purposes, using sample data
-      console.log("Fetching dropdown data from PHP backend...");
+      console.log("data ", result);
+      setData(result.data)
     } catch (error) {
-      console.error("Error fetching dropdown data:", error);
+      console.error("Error fetching data:", error);
     } finally {
       setLoading(false);
     }
   };
 
   const handleAddOrder = () => {
-    console.log("click onClick={handleAddOrder}");
     setShowAddForm(true);
   };
 
@@ -71,7 +65,7 @@ export default function index() {
     setShowAddForm(false);
     setFormData({
       id: "",
-      operationType: "",
+      operationName: "",
       isActive: "",
     });
     setEditingId(null);
@@ -90,83 +84,66 @@ export default function index() {
     setLoading(true);
 
     try {
-      // const selectedUser = users.find((u) => u.id.toString() === formData.user);
-      // const selectedProduct = products.find(
-      //   (p) => p.id.toString() === formData.product
-      // );
-
       // Prepare data for PHP API
       const userData = {
         id: formData.id,
-        operationType: formData.operationType,
+        operationName: formData.operationName,
         isActive: formData.isActive,
       };
 
       if (editingId) {
-        // Update existing order
-        // const response = await fetch(`/api/casting-orders/${editingId}`, {
-        //   method: 'PUT',
-        //   headers: {
-        //     'Content-Type': 'application/json',
-        //   },
-        //   body: JSON.stringify(orderData)
-        // });
-
-        // For demo purposes, update order locally
-        const updatedUser = {
-          id: formData.id,
-          operationType: formData.operationType,
-          isActive: formData.isActive,
-        };
-
-        setData((prev) =>
-          prev.map((item) => (item.id === editingId ? updatedUser : item))
-        );
-
-        console.log("User updated successfully:", userData);
+        // Update existing operation type
+        const response = await fetch(API_ENDPOINTS.OPERATIONS, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(userData),
+        });
         setEditingId(null);
       } else {
-        // Create new order
-        // const response = await fetch('/api/casting-orders', {
-        //   method: 'POST',
-        //   headers: {
-        //     'Content-Type': 'application/json',
-        //   },
-        //   body: JSON.stringify(orderData)
-        // });
-
+        // Create new operation type
+        const response = await fetch(API_ENDPOINTS.OPERATIONS, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            operationName: formData.operationName,
+            isActive: formData.isActive,
+          }),
+        });
         // For demo purposes, create new order locally
         const newUser = {
-          id: `CO${String(data.length + 1).padStart(4, "0")}`,
-          operationType: formData.operationType,
+          operationName: formData.operationName,
           isActive: formData.isActive,
         };
 
         setData((prev) => [...prev, newUser]);
 
-        console.log("User created successfully:", userData);
       }
 
       handleGoBack();
     } catch (error) {
-      console.error("Error saving User:", error);
-      alert("Failed to save User. Please try again.");
+      console.error("Error saving operation type:", error);
+      alert("Failed to save operation type. Please try again.");
     } finally {
+      fetchOperation();
       setLoading(false);
     }
   };
 
-  const handleAddNewItem = (type) => {
-    // This would open a modal or navigate to add new client/user/product
-    alert(`Add new ${type} functionality would be implemented here`);
-    // Example: window.open(`/add-${type}`, '_blank');
-  };
+  // const handleAddNewItem = (type) => {
+  //   // This would open a modal or navigate to add new client/user/product
+  //   alert(`Add new ${type} functionality would be implemented here`);
+  //   // Example: window.open(`/add-${type}`, '_blank');
+  // };
 
   // Handle Edit Order
   const handleEdit = (user) => {
     setFormData({
       id: user.id,
-      operationType: user.operationType,
+      operationName: user.operationName,
       isActive: user.isActive,
     });
 
@@ -185,22 +162,21 @@ export default function index() {
     setLoading(true);
     try {
       // Call PHP API to delete
-      // const response = await fetch(`/api/casting-orders/${deleteId}`, {
-      //   method: 'DELETE'
-      // });
-      //
-      // if (!response.ok) {
-      //   throw new Error('Failed to delete order');
-      // }
+      const response = await fetch(
+        API_ENDPOINTS.OPERATIONS + `/?id=${deleteId}`,
+        {
+          method: "DELETE",
+        }
+      );
 
-      // For demo purposes, delete locally
-      setData((prev) => prev.filter((item) => item.id !== deleteId));
-
-      console.log("User deleted successfully:", deleteId);
+      if (!response.ok) {
+        throw new Error("Failed to delete operation type");
+      }
     } catch (error) {
-      console.error("Error deleting User:", error);
+      console.error("Error deleting operation type:", error);
       alert("Failed to delete User. Please try again.");
     } finally {
+      fetchOperation();
       setLoading(false);
       setShowDeleteConfirm(false);
       setDeleteId(null);
@@ -217,7 +193,7 @@ export default function index() {
   };
 
   const filteredData = data.filter((item) =>
-    item.operationType.toLowerCase().includes(search.toLowerCase())
+    item.operationName.toLowerCase().includes(search.toLowerCase())
   );
 
   // Add Order Form Component
@@ -247,8 +223,8 @@ export default function index() {
               </label>
               <input
                 type="text"
-                name="operationType"
-                value={formData.operationType}
+                name="operationName"
+                value={formData.operationName}
                 onChange={handleFormChange}
                 className="w-full border rounded px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Enter size (e.g., 10x20cm)"
@@ -301,7 +277,7 @@ export default function index() {
     <div className="bg-white p-6 rounded shadow">
       {/* Header Section */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-4">
-        <h2 className="text-lg font-semibold">OperationType Master</h2>
+        <h2 className="text-lg font-semibold">operationName Master</h2>
 
         {/* Search and Add Button Container */}
         <div className="flex flex-col-reverse sm:flex-row gap-2 w-full sm:w-auto">
@@ -337,7 +313,7 @@ export default function index() {
               filteredData.map((row) => (
                 <tr key={row.srno} className="border-t-[0.5px]">
                   <td className="p-3">{row.id}</td>
-                  <td className="p-3">{row.operationType}</td>
+                  <td className="p-3">{row.operationName}</td>
                   <td className="p-3">
                     <div className="flex gap-2">
                       <button
@@ -400,7 +376,7 @@ export default function index() {
                   <span className="font-medium text-gray-600">
                     Client Name :
                   </span>
-                  <div>{row.operationType}</div>
+                  <div>{row.operationName}</div>
                 </div>
               </div>
             </div>
@@ -417,56 +393,56 @@ export default function index() {
       </div>
 
       {/* Delete Confirmation Modal */}
-            {showDeleteConfirm && (
-              <div className="fixed inset-0 bg-black/35 bg-opacity-50 flex items-center justify-center z-50">
-                <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
-                      <Trash2 size={20} className="text-red-600" />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900">
-                        Delete Order
-                      </h3>
-                      <p className="text-sm text-gray-600">
-                        Order ID: {data.find((item) => item.id === deleteId)?.id}
-                      </p>
-                    </div>
-                  </div>
-      
-                  <p className="text-gray-700 mb-6">
-                    Are you sure you want to delete this casting order? This action
-                    cannot be undone.
-                  </p>
-      
-                  <div className="flex gap-3 justify-end">
-                    <button
-                      onClick={cancelDelete}
-                      className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={confirmDelete}
-                      disabled={loading}
-                      className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition disabled:opacity-50 flex items-center gap-2"
-                    >
-                      {loading ? (
-                        <>
-                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                          Deleting...
-                        </>
-                      ) : (
-                        <>
-                          <Trash2 size={16} />
-                          Delete
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </div>
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/35 bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                <Trash2 size={20} className="text-red-600" />
               </div>
-            )}
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Delete Order
+                </h3>
+                <p className="text-sm text-gray-600">
+                  Order ID: {data.find((item) => item.id === deleteId)?.id}
+                </p>
+              </div>
+            </div>
+
+            <p className="text-gray-700 mb-6">
+              Are you sure you want to delete this casting order? This action
+              cannot be undone.
+            </p>
+
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={cancelDelete}
+                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                disabled={loading}
+                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition disabled:opacity-50 flex items-center gap-2"
+              >
+                {loading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 size={16} />
+                    Delete
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
