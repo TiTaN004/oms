@@ -116,7 +116,7 @@ export default function ProductManagement() {
 
       if (editingId) {
         url += `?id=${editingId}`;
-        method = 'PUT';
+        method = 'POST';
       }
 
       const response = await fetch(url, {
