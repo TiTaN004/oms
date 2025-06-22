@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Plus, Pencil, Trash2, ArrowLeft, Save } from "lucide-react";
 import API_ENDPOINTS from "../../utils/apiConfig";
+import { useNavigate } from "react-router-dom";
 
 export default function index() {
   const [search, setSearch] = useState("");
@@ -25,6 +26,8 @@ export default function index() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  const nav = useNavigate();
 
   // Fetch all data on component mount
   useEffect(() => {
@@ -120,7 +123,6 @@ export default function index() {
       }
       
       const userData = await response.json();
-      
       if (userData.statusCode === 200) {
         // Map the user data to match expected format
         const mappedUsers = userData.data.map(user => ({
@@ -151,12 +153,11 @@ export default function index() {
       }
       
       const productData = await response.json();
-      console.log("Product Data:", productData);
       if (productData.success) {
         // Map the product data to match expected format
         const mappedProducts = productData.data.map(product => ({
-          id: product.id,
-          name: product.product_name || product.name
+          id: product.id || product.srno,
+          name: product.product_name || product.productName
         }));
         setProducts(mappedProducts);
       } else {
@@ -298,7 +299,7 @@ export default function index() {
         // Refresh the casting orders data
         await fetchCastingOrders();
         
-        alert(editingId ? "Order updated successfully!" : "Order created successfully!");
+        // alert(editingId ? "Order updated successfully!" : "Order created successfully!");
         handleGoBack();
       } else {
         throw new Error(result.error || "Failed to save order");
@@ -312,7 +313,17 @@ export default function index() {
   };
 
   const handleAddNewItem = (type) => {
-    alert(`Add new ${type} functionality would be implemented here`);
+    if (type === "Client") {
+      // Redirect to client creation page or show client creation form
+      nav("/dashboard/client-master");
+    }
+    else if (type === "Product") {
+      // Redirect to product creation page or show product creation form
+      nav("/dashboard/products");
+    } else if (type === "User") {
+      // Redirect to user creation page or show user creation form
+      nav("/dashboard/user");
+    }
   };
 
   // Handle Edit Order
@@ -356,7 +367,7 @@ export default function index() {
       if (result.success) {
         // Remove from local state
         setData((prev) => prev.filter((item) => item.id !== deleteId));
-        alert("Order deleted successfully!");
+        // alert("Order deleted successfully!");
       } else {
         throw new Error(result.error || "Failed to delete order");
       }
