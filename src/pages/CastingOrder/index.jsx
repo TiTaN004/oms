@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Plus, Pencil, Trash2, ArrowLeft, Save } from "lucide-react";
+import API_ENDPOINTS from "../../utils/apiConfig";
 const sampleData = [
   {
     id: 5,
@@ -9,7 +10,7 @@ const sampleData = [
     qty: 10,
     size: 10,
     status: "pending",
-    orderDate: "2024-01-15"
+    orderDate: "2024-01-15",
   },
   {
     id: 4,
@@ -19,7 +20,7 @@ const sampleData = [
     qty: 11,
     size: 12,
     status: "pending",
-    orderDate: "2024-01-15"
+    orderDate: "2024-01-15",
   },
 ];
 
@@ -94,24 +95,50 @@ export default function index() {
 
   // Fetch dropdown data from PHP backend
   useEffect(() => {
-    fetchDropdownData();
+    fetchCastingOrder();
   }, []);
 
-  const fetchDropdownData = async () => {
+  const fetchCastingOrder = async () => {
     setLoading(true);
     try {
-      // Replace these with actual PHP API endpoints
-      // const clientsResponse = await fetch('/api/clients');
-      // const usersResponse = await fetch('/api/users');
-      // const productsResponse = await fetch('/api/products');
+      // fetch casting orders
+      const response = await fetch(API_ENDPOINTS.CASTING_ORDERS, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      const responseData = await response.json();
 
-      // const clientsData = await clientsResponse.json();
-      // const usersData = await usersResponse.json();
-      // const productsData = await productsResponse.json();
+      setData(responseData.data || sampleData);
 
-      // setClients(clientsData);
-      // setUsers(usersData);
-      // setProducts(productsData);
+      console.log(responseData);
+
+      //fetch clients
+
+      const client = await fetch(API_ENDPOINTS.CLIENTS, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      const clienData = await client.json();
+
+      setClients(clienData.data || sampleClients);
+
+      console.log(clienData.data);
+
+      //fetch users
+      const user = await fetch(API_ENDPOINTS.USERS, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      const userData = await user.json();
+      setUsers(userData.data || sampleUsers);
+      console.log(userData.data);
 
       // For demo purposes, using sample data
       console.log("Fetching dropdown data from PHP backend...");
@@ -151,7 +178,7 @@ export default function index() {
       status: "processing",
       orderDate: new Date().toISOString().split("T")[0],
     });
-    setEditingId(null)
+    setEditingId(null);
   };
 
   const handleFormChange = (e) => {
@@ -213,7 +240,7 @@ export default function index() {
         );
 
         console.log("Order updated successfully:", orderData);
-        setEditingId(null)
+        setEditingId(null);
       } else {
         // Create new order
         // const response = await fetch('/api/casting-orders', {
@@ -279,7 +306,7 @@ export default function index() {
 
   // Handle Delete Order
   const handleDelete = (id) => {
-    console.log("clicked")
+    console.log("clicked");
     setDeleteId(id);
     setShowDeleteConfirm(true);
   };
@@ -573,10 +600,16 @@ export default function index() {
                   </td>
                   <td className="p-3">
                     <div className="flex gap-2">
-                      <button onClick={() => handleEdit(row)} className="text-blue-600 hover:underline cursor-pointer">
+                      <button
+                        onClick={() => handleEdit(row)}
+                        className="text-blue-600 hover:underline cursor-pointer"
+                      >
                         <Pencil size={16} />
                       </button>
-                      <button onClick={() => handleDelete(row.id)} className="text-red-600 hover:underline cursor-pointer">
+                      <button
+                        onClick={() => handleDelete(row.id)}
+                        className="text-red-600 hover:underline cursor-pointer"
+                      >
                         <Trash2 size={16} />
                       </button>
                     </div>
@@ -608,10 +641,16 @@ export default function index() {
                   <div className="font-medium">{row.id}</div>
                 </div>
                 <div className="flex gap-2">
-                  <button onClick={() => handleEdit(row)} className="text-blue-600 hover:bg-blue-50 p-2 rounded cursor-pointer">
+                  <button
+                    onClick={() => handleEdit(row)}
+                    className="text-blue-600 hover:bg-blue-50 p-2 rounded cursor-pointer"
+                  >
                     <Pencil size={16} />
                   </button>
-                  <button onClick={() => handleDelete(row.id)} className="text-red-600 hover:bg-red-50 p-2 rounded cursor-pointer">
+                  <button
+                    onClick={() => handleDelete(row.id)}
+                    className="text-red-600 hover:bg-red-50 p-2 rounded cursor-pointer"
+                  >
                     <Trash2 size={16} />
                   </button>
                 </div>
@@ -676,17 +715,20 @@ export default function index() {
                 <Trash2 size={20} className="text-red-600" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">Delete Order</h3>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Delete Order
+                </h3>
                 <p className="text-sm text-gray-600">
-                  Order ID: {data.find(item => item.id === deleteId)?.id}
+                  Order ID: {data.find((item) => item.id === deleteId)?.id}
                 </p>
               </div>
             </div>
-            
+
             <p className="text-gray-700 mb-6">
-              Are you sure you want to delete this casting order? This action cannot be undone.
+              Are you sure you want to delete this casting order? This action
+              cannot be undone.
             </p>
-            
+
             <div className="flex gap-3 justify-end">
               <button
                 onClick={cancelDelete}

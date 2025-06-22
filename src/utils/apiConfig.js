@@ -13,8 +13,9 @@ export const API_ENDPOINTS = {
 
   // Orders
   ORDERS: `${API_BASE_URL}/orders.php`,
-  CASTING_ORDERS: `${API_BASE_URL}/casting-orders.php`,
 
+  // casting orders
+  CASTING_ORDERS: `${API_BASE_URL}/casting-order/casting-order.php`,
   // Master data
   WEIGHT_TYPES: `${API_BASE_URL}/weight-types.php`,
 
