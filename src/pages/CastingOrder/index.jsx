@@ -1,78 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { Plus, Pencil, Trash2, ArrowLeft, Save } from "lucide-react";
 import API_ENDPOINTS from "../../utils/apiConfig";
-const sampleData = [
-  {
-    id: 5,
-    client: "fortune casting",
-    user: "test",
-    product: "LOCK DABI",
-    qty: 10,
-    size: 10,
-    status: "pending",
-    orderDate: "2024-01-15",
-  },
-  {
-    id: 4,
-    client: "fortune casting",
-    user: "test",
-    product: 'S HENDAL 4"',
-    qty: 11,
-    size: 12,
-    status: "pending",
-    orderDate: "2024-01-15",
-  },
-];
-
-// Sample data for demonstration
-// const sampleData = [
-//   {
-//     id: "CO0001",
-//     client: "ABC Corp",
-//     user: "John Doe",
-//     product: "Cast Iron Pipe",
-//     qty: "100",
-//     size: "10x20cm",
-//     status: "processing",
-//     orderDate: "2024-01-15"
-//   },
-//   {
-//     id: "CO0002",
-//     client: "XYZ Ltd",
-//     user: "Jane Smith",
-//     product: "Steel Casting",
-//     qty: "50",
-//     size: "15x25cm",
-//     status: "completed",
-//     orderDate: "2024-01-14"
-//   }
-// ];
-
-// Sample dropdown data (this would come from PHP backend)
-const sampleClients = [
-  { id: 1, name: "ABC Corp" },
-  { id: 2, name: "XYZ Ltd" },
-  { id: 3, name: "DEF Industries" },
-  { id: 4, name: "GHI Manufacturing" },
-];
-
-const sampleUsers = [
-  { id: 1, name: "John Doe" },
-  { id: 2, name: "Jane Smith" },
-  { id: 3, name: "Mike Johnson" },
-  { id: 4, name: "Sarah Wilson" },
-];
-
-const sampleProducts = [
-  { id: 1, name: "Cast Iron Pipe" },
-  { id: 2, name: "Steel Casting" },
-  { id: 3, name: "Aluminum Casting" },
-  { id: 4, name: "Bronze Casting" },
-];
 
 export default function index() {
   const [search, setSearch] = useState("");
-  const [data, setData] = useState(sampleData);
+  const [data, setData] = useState([]);
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -83,69 +15,156 @@ export default function index() {
     product: "",
     qty: "",
     size: "",
-    status: "processing",
+    status: "pending",
     orderDate: new Date().toISOString().split("T")[0],
   });
 
   // Dropdown data states
-  const [clients, setClients] = useState(sampleClients);
-  const [users, setUsers] = useState(sampleUsers);
-  const [products, setProducts] = useState(sampleProducts);
+  const [clients, setClients] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  // Fetch dropdown data from PHP backend
+  // Fetch all data on component mount
   useEffect(() => {
-    fetchCastingOrder();
+    fetchAllData();
   }, []);
 
-  const fetchCastingOrder = async () => {
+  const fetchAllData = async () => {
     setLoading(true);
+    setError(null);
     try {
-      // fetch casting orders
+      await Promise.all([
+        fetchCastingOrders(),
+        fetchClients(),
+        fetchUsers(),
+        fetchProducts()
+      ]);
+    } catch (error) {
+      setError("Failed to load data. Please refresh the page.");
+      console.error("Error fetching data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchCastingOrders = async () => {
+    try {
       const response = await fetch(API_ENDPOINTS.CASTING_ORDERS, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
         },
       });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
       const responseData = await response.json();
-
-      setData(responseData.data || sampleData);
-
-      console.log(responseData);
-
-      //fetch clients
-
-      const client = await fetch(API_ENDPOINTS.CLIENTS, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      const clienData = await client.json();
-
-      setClients(clienData.data || sampleClients);
-
-      console.log(clienData.data);
-
-      //fetch users
-      const user = await fetch(API_ENDPOINTS.USERS, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      const userData = await user.json();
-      setUsers(userData.data || sampleUsers);
-      console.log(userData.data);
-
-      // For demo purposes, using sample data
-      console.log("Fetching dropdown data from PHP backend...");
+      
+      if (responseData.success) {
+        setData(responseData.data || []);
+      } else {
+        throw new Error(responseData.error || "Failed to fetch casting orders");
+      }
     } catch (error) {
-      console.error("Error fetching dropdown data:", error);
-    } finally {
-      setLoading(false);
+      console.error("Error fetching casting orders:", error);
+      throw error;
+    }
+  };
+
+  const fetchClients = async () => {
+    try {
+      const response = await fetch(API_ENDPOINTS.CLIENTS, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const clientData = await response.json();
+      if (clientData.statusCode === 200) {
+        // Map the client data to match expected format
+        const mappedClients = clientData.data.map(client => ({
+          id: client.id,
+          name: client.clientName || client.client_name || client.name
+        }));
+        setClients(mappedClients);
+      } else {
+        throw new Error(clientData.error || "Failed to fetch clients");
+      }
+    } catch (error) {
+      console.error("Error fetching clients:", error);
+      // Set empty array to prevent crashes
+      setClients([]);
+    }
+  };
+
+  const fetchUsers = async () => {
+    try {
+      const response = await fetch(API_ENDPOINTS.USERS, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const userData = await response.json();
+      
+      if (userData.statusCode === 200) {
+        // Map the user data to match expected format
+        const mappedUsers = userData.data.map(user => ({
+          id: user.userID || user.id,
+          name: user.fullName || user.name
+        }));
+        setUsers(mappedUsers);
+      } else {
+        throw new Error(userData.error || "Failed to fetch users");
+      }
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      setUsers([]);
+    }
+  };
+
+  const fetchProducts = async () => {
+    try {
+      const response = await fetch(API_ENDPOINTS.PRODUCTS, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const productData = await response.json();
+      console.log("Product Data:", productData);
+      if (productData.success) {
+        // Map the product data to match expected format
+        const mappedProducts = productData.data.map(product => ({
+          id: product.id,
+          name: product.product_name || product.name
+        }));
+        setProducts(mappedProducts);
+      } else {
+        throw new Error(productData.error || "Failed to fetch products");
+      }
+    } catch (error) {
+      console.error("Error fetching products:", error);
+      setProducts([]);
     }
   };
 
@@ -154,13 +173,52 @@ export default function index() {
   };
 
   const filteredData = data.filter((item) =>
-    item.client.toLowerCase().includes(search.toLowerCase())
+    item.client?.toLowerCase().includes(search.toLowerCase()) ||
+    item.product?.toLowerCase().includes(search.toLowerCase()) ||
+    item.user?.toLowerCase().includes(search.toLowerCase())
   );
 
-  const handleStatusChange = (id, status) => {
-    setData((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, status } : item))
-    );
+  const handleStatusChange = async (id, status) => {
+    try {
+      const orderToUpdate = data.find(item => item.id === id);
+      if (!orderToUpdate) return;
+
+      const updateData = {
+        client_id: orderToUpdate.fClientID,
+        product_id: orderToUpdate.fProductID,
+        user_id: orderToUpdate.fAssignUserID,
+        qty: orderToUpdate.qty,
+        size: orderToUpdate.size,
+        order_date: orderToUpdate.orderDate,
+        status: status
+      };
+
+      const response = await fetch(`${API_ENDPOINTS.CASTING_ORDERS}/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updateData)
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      
+      if (result.success) {
+        // Update local state
+        setData((prev) =>
+          prev.map((item) => (item.id === id ? { ...item, status } : item))
+        );
+      } else {
+        throw new Error(result.error || "Failed to update status");
+      }
+    } catch (error) {
+      console.error("Error updating status:", error);
+      alert("Failed to update status. Please try again.");
+    }
   };
 
   const handleAddOrder = () => {
@@ -175,7 +233,7 @@ export default function index() {
       product: "",
       qty: "",
       size: "",
-      status: "processing",
+      status: "pending",
       orderDate: new Date().toISOString().split("T")[0],
     });
     setEditingId(null);
@@ -191,113 +249,82 @@ export default function index() {
 
   const handleFormSubmit = async () => {
     setLoading(true);
+    setError(null);
 
     try {
-      // Get selected names for display
-      const selectedClient = clients.find(
-        (c) => c.id.toString() === formData.client
-      );
-      const selectedUser = users.find((u) => u.id.toString() === formData.user);
-      const selectedProduct = products.find(
-        (p) => p.id.toString() === formData.product
-      );
+      // Validate required fields
+      if (!formData.client || !formData.user || !formData.product || 
+          !formData.qty || !formData.size || !formData.orderDate) {
+        alert("Please fill in all required fields.");
+        return;
+      }
 
       // Prepare data for PHP API
       const orderData = {
-        client_id: formData.client,
-        user_id: formData.user,
-        product_id: formData.product,
+        client_id: parseInt(formData.client),
+        user_id: parseInt(formData.user),
+        product_id: parseInt(formData.product),
         qty: formData.qty,
         size: formData.size,
         status: formData.status,
         order_date: formData.orderDate,
       };
 
+      let response;
+      let url = API_ENDPOINTS.CASTING_ORDERS;
+      let method = 'POST';
+
       if (editingId) {
         // Update existing order
-        // const response = await fetch(`/api/casting-orders/${editingId}`, {
-        //   method: 'PUT',
-        //   headers: {
-        //     'Content-Type': 'application/json',
-        //   },
-        //   body: JSON.stringify(orderData)
-        // });
-
-        // For demo purposes, update order locally
-        const updatedOrder = {
-          id: editingId,
-          client: selectedClient?.name || "",
-          user: selectedUser?.name || "",
-          product: selectedProduct?.name || "",
-          qty: formData.qty,
-          size: formData.size,
-          status: formData.status,
-          orderDate: formData.orderDate,
-        };
-
-        setData((prev) =>
-          prev.map((item) => (item.id === editingId ? updatedOrder : item))
-        );
-
-        console.log("Order updated successfully:", orderData);
-        setEditingId(null);
-      } else {
-        // Create new order
-        // const response = await fetch('/api/casting-orders', {
-        //   method: 'POST',
-        //   headers: {
-        //     'Content-Type': 'application/json',
-        //   },
-        //   body: JSON.stringify(orderData)
-        // });
-
-        // For demo purposes, create new order locally
-        const newOrder = {
-          id: `CO${String(data.length + 1).padStart(4, "0")}`,
-          client: selectedClient?.name || "",
-          user: selectedUser?.name || "",
-          product: selectedProduct?.name || "",
-          qty: formData.qty,
-          size: formData.size,
-          status: formData.status,
-          orderDate: formData.orderDate,
-        };
-
-        setData((prev) => [...prev, newOrder]);
-
-        console.log("Order created successfully:", orderData);
+        url = `${API_ENDPOINTS.CASTING_ORDERS}/${editingId}`;
+        method = 'PUT';
       }
 
-      handleGoBack();
+      response = await fetch(url, {
+        method: method,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(orderData)
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      
+      if (result.success) {
+        // Refresh the casting orders data
+        await fetchCastingOrders();
+        
+        alert(editingId ? "Order updated successfully!" : "Order created successfully!");
+        handleGoBack();
+      } else {
+        throw new Error(result.error || "Failed to save order");
+      }
     } catch (error) {
       console.error("Error saving order:", error);
-      alert("Failed to save order. Please try again.");
+      alert(`Failed to save order: ${error.message}`);
     } finally {
       setLoading(false);
     }
   };
 
   const handleAddNewItem = (type) => {
-    // This would open a modal or navigate to add new client/user/product
     alert(`Add new ${type} functionality would be implemented here`);
-    // Example: window.open(`/add-${type}`, '_blank');
   };
 
   // Handle Edit Order
   const handleEdit = (order) => {
-    // Find the corresponding IDs for the dropdowns
-    const clientId = clients.find((c) => c.name === order.client)?.id || "";
-    const userId = users.find((u) => u.name === order.user)?.id || "";
-    const productId = products.find((p) => p.name === order.product)?.id || "";
-
     setFormData({
-      client: clientId.toString(),
-      user: userId.toString(),
-      product: productId.toString(),
-      qty: order.qty,
-      size: order.size,
-      status: order.status,
-      orderDate: order.orderDate,
+      client: order.fClientID?.toString() || "",
+      user: order.fAssignUserID?.toString() || "",
+      product: order.fProductID?.toString() || "",
+      qty: order.qty?.toString() || "",
+      size: order.size?.toString() || "",
+      status: order.status || "pending",
+      orderDate: order.orderDate || new Date().toISOString().split("T")[0],
     });
 
     setEditingId(order.id);
@@ -306,7 +333,6 @@ export default function index() {
 
   // Handle Delete Order
   const handleDelete = (id) => {
-    console.log("clicked");
     setDeleteId(id);
     setShowDeleteConfirm(true);
   };
@@ -314,22 +340,29 @@ export default function index() {
   const confirmDelete = async () => {
     setLoading(true);
     try {
-      // Call PHP API to delete
-      // const response = await fetch(`/api/casting-orders/${deleteId}`, {
-      //   method: 'DELETE'
-      // });
-      //
-      // if (!response.ok) {
-      //   throw new Error('Failed to delete order');
-      // }
+      const response = await fetch(`${API_ENDPOINTS.CASTING_ORDERS}/${deleteId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
 
-      // For demo purposes, delete locally
-      setData((prev) => prev.filter((item) => item.id !== deleteId));
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
-      console.log("Order deleted successfully:", deleteId);
+      const result = await response.json();
+      
+      if (result.success) {
+        // Remove from local state
+        setData((prev) => prev.filter((item) => item.id !== deleteId));
+        alert("Order deleted successfully!");
+      } else {
+        throw new Error(result.error || "Failed to delete order");
+      }
     } catch (error) {
       console.error("Error deleting order:", error);
-      alert("Failed to delete order. Please try again.");
+      alert(`Failed to delete order: ${error.message}`);
     } finally {
       setLoading(false);
       setShowDeleteConfirm(false);
@@ -379,6 +412,35 @@ export default function index() {
     </div>
   );
 
+  // Show loading state
+  if (loading && data.length === 0) {
+    return (
+      <div className="bg-white p-6 rounded shadow">
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-900"></div>
+          <span className="ml-3">Loading...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error && data.length === 0) {
+    return (
+      <div className="bg-white p-6 rounded shadow">
+        <div className="text-center py-12">
+          <div className="text-red-600 mb-4">{error}</div>
+          <button
+            onClick={fetchAllData}
+            className="bg-blue-900 text-white px-4 py-2 rounded hover:bg-blue-800"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   // Add Order Form Component
   if (showAddForm) {
     return (
@@ -393,7 +455,9 @@ export default function index() {
             <span className="hidden sm:inline">Back to Orders</span>
             <span className="sm:hidden">Back</span>
           </button>
-          <h2 className="text-lg font-semibold">Add New Casting Order</h2>
+          <h2 className="text-lg font-semibold">
+            {editingId ? 'Edit Casting Order' : 'Add New Casting Order'}
+          </h2>
         </div>
 
         {/* Add Order Form */}
@@ -483,13 +547,14 @@ export default function index() {
                 Quantity *
               </label>
               <input
-                type="text"
+                type="number"
                 name="qty"
                 value={formData.qty}
                 onChange={handleFormChange}
                 className="w-full border rounded px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Enter quantity"
                 required
+                min="1"
               />
             </div>
 
@@ -504,7 +569,7 @@ export default function index() {
                 onChange={handleFormChange}
                 className="w-full border rounded px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="processing">In Processing</option>
+                <option value="pending">Pending</option>
                 <option value="completed">Completed</option>
               </select>
             </div>
@@ -519,7 +584,7 @@ export default function index() {
               className="bg-blue-900 text-white px-6 py-2 rounded hover:bg-blue-800 transition flex items-center justify-center gap-2 disabled:opacity-50"
             >
               <Save size={16} />
-              {loading ? "Saving..." : "Save Order"}
+              {loading ? "Saving..." : editingId ? "Update Order" : "Save Order"}
             </button>
             <button
               type="button"
@@ -545,7 +610,7 @@ export default function index() {
         <div className="flex flex-col-reverse sm:flex-row gap-2 w-full sm:w-auto">
           <input
             type="text"
-            placeholder="Search"
+            placeholder="Search by client, product, or user..."
             className="border px-4 py-2 rounded w-full sm:w-64 order-2 sm:order-1"
             value={search}
             onChange={handleSearch}
@@ -573,6 +638,7 @@ export default function index() {
               <th className="p-3 font-medium">Product Qty</th>
               <th className="p-3 font-medium">Size</th>
               <th className="p-3 font-medium">Status</th>
+              <th className="p-3 font-medium">Order Date</th>
               <th className="p-3 font-medium">Action</th>
             </tr>
           </thead>
@@ -581,9 +647,9 @@ export default function index() {
               filteredData.map((row) => (
                 <tr key={row.id} className="border-t-[0.5px]">
                   <td className="p-3">{row.id}</td>
-                  <td className="p-3">{row.client}</td>
-                  <td className="p-3">{row.user}</td>
-                  <td className="p-3">{row.product}</td>
+                  <td className="p-3">{row.client || 'N/A'}</td>
+                  <td className="p-3">{row.user || 'N/A'}</td>
+                  <td className="p-3">{row.product || 'N/A'}</td>
                   <td className="p-3">{row.qty}</td>
                   <td className="p-3">{row.size}</td>
                   <td className="p-3">
@@ -594,10 +660,11 @@ export default function index() {
                       }
                       className="border px-2 py-1 rounded"
                     >
-                      <option value="pending">🔴</option>
-                      <option value="completed">🟢</option>
+                      <option value="pending">🔴 Pending</option>
+                      <option value="completed">🟢 Completed</option>
                     </select>
                   </td>
+                  <td className="p-3">{row.orderDate}</td>
                   <td className="p-3">
                     <div className="flex gap-2">
                       <button
@@ -618,7 +685,7 @@ export default function index() {
               ))
             ) : (
               <tr>
-                <td colSpan="8" className="text-center p-4 text-gray-500">
+                <td colSpan="9" className="text-center p-4 text-gray-500">
                   No matching records found.
                 </td>
               </tr>
@@ -662,15 +729,15 @@ export default function index() {
                   <span className="font-medium text-gray-600">
                     Client Name :
                   </span>
-                  <div>{row.client}</div>
+                  <div>{row.client || 'N/A'}</div>
                 </div>
                 <div>
                   <span className="font-medium text-gray-600">User Name :</span>
-                  <div>{row.user}</div>
+                  <div>{row.user || 'N/A'}</div>
                 </div>
                 <div>
                   <span className="font-medium text-gray-600">Product :</span>
-                  <div>{row.product}</div>
+                  <div>{row.product || 'N/A'}</div>
                 </div>
                 <div>
                   <span className="font-medium text-gray-600">Quantity :</span>
@@ -681,6 +748,10 @@ export default function index() {
                   <div>{row.size}</div>
                 </div>
                 <div>
+                  <span className="font-medium text-gray-600">Order Date :</span>
+                  <div>{row.orderDate}</div>
+                </div>
+                <div className="sm:col-span-2">
                   <span className="font-medium text-gray-600">Status :</span>
                   <select
                     value={row.status}
