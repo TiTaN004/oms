@@ -317,10 +317,53 @@ export default function index() {
     item.client.toLowerCase().includes(search.toLowerCase())
   );
 
-  const handleStatusChange = (id, status) => {
-    setData((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, status } : item))
-    );
+  // const handleStatusChange = (id, status) => {
+  //   setData((prev) =>
+  //     prev.map((item) => (item.id === id ? { ...item, status } : item))
+  //   );
+  // };
+
+  const handleStatusChange = async (id, status) => {
+    setLoading(true);
+    try {
+      // Find the order to get its details
+      const order = data.find((item) => item.id === id);
+      if (!order) {
+        throw new Error("Order not found");
+      }
+
+      // Prepare the status update payload
+      const statusUpdateData = {
+        status: status === "completed" ? 1 : 0, // Convert to API expected format
+      };
+
+      // Call API to update status
+      const response = await fetch(`${API_ENDPOINTS.ORDERS}/${id}`, {
+        method: "PUT", // or PATCH if your API supports it
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(statusUpdateData),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update status");
+      }
+
+      // Update local state only if API call succeeds
+      setData((prev) =>
+        prev.map((item) => (item.id === id ? { ...item, status } : item))
+      );
+
+      console.log("Status updated successfully:", { id, status });
+    } catch (error) {
+      console.error("Error updating status:", error);
+      alert("Failed to update status. Please try again.");
+      // Optionally refresh data from API to ensure consistency
+      fetchOrders();
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleAddOrder = () => {
@@ -401,7 +444,7 @@ export default function index() {
 
       if (editingId) {
         // For demo purposes, update order locally
-        console.log(editingId)
+        console.log(editingId);
         const updatedOrder = {
           id: editingId,
           fClientID: selectedClient?.id || "",
@@ -417,7 +460,7 @@ export default function index() {
           description: formData.description,
           fOperationID: selectedOperationType?.id || "",
           fAssignUserID: selectedAssignedTo?.id || "",
-          status: formData.status,
+          status: formData.status === "Completed" ? 1 : 0,
         };
         // Update existing order
         const response = await fetch(`${API_ENDPOINTS.ORDERS}/${editingId}`, {
@@ -1073,10 +1116,11 @@ export default function index() {
                       onChange={(e) =>
                         handleStatusChange(row.id, e.target.value)
                       }
-                      className="border px-2 py-1 rounded"
+                      className="border px-2 py-1 rounded text-sm"
+                      disabled={loading}
                     >
-                      <option value="pending">🔴</option>
-                      <option value="completed">🟢</option>
+                      <option value="Processing">🔴 Processing</option>
+                      <option value="Completed">🟢 Completed</option>
                     </select>
                   </td>
                   <td className="p-3">
@@ -1180,11 +1224,20 @@ export default function index() {
                   <select
                     value={row.status}
                     onChange={(e) => handleStatusChange(row.id, e.target.value)}
+                    className="border px-2 py-1 rounded text-sm"
+                    disabled={loading}
+                  >
+                    <option value="Processing">🔴 Processing</option>
+                    <option value="Completed">🟢 Completed</option>
+                  </select>
+                  {/* <select
+                    value={row.status}
+                    onChange={(e) => handleStatusChange(row.id, e.target.value)}
                     className="border px-3 py-1 rounded mt-1 w-full"
                   >
                     <option value="pending">🔴 Pending</option>
                     <option value="completed">🟢 Completed</option>
-                  </select>
+                  </select> */}
                 </div>
               </div>
             </div>
