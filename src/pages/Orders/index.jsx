@@ -125,6 +125,10 @@ export default function index() {
   const [assignedTo, setAssignedTo] = useState(sampleAssginedUser);
   const [loading, setLoading] = useState(false);
 
+  // all filtered users
+  const [allUsers, setAllUsers] = useState([]); // Store all users
+  const [filteredAssignedTo, setFilteredAssignedTo] = useState([]); // Filtered users based on operation
+
   const nav = useNavigate();
 
   // Fetch dropdown data from PHP backend
@@ -198,7 +202,7 @@ export default function index() {
         id: product.id,
         name: product.clientName,
       }));
-        setClients(mappedClients);
+      setClients(mappedClients);
     } catch (error) {
       console.error("Error fetching clients:", error);
     }
@@ -242,11 +246,26 @@ export default function index() {
         id: product.id,
         name: product.operationName,
       }));
-        setOperationType(mappedOperationTypes);
+      setOperationType(mappedOperationTypes);
     } catch (error) {
       console.error("Error fetching operation types:", error);
     }
   };
+
+  // const fetchUsers = async () => {
+  //   try {
+  //     const response = await fetch(API_ENDPOINTS.USERS);
+  //     const result = await response.json();
+  //     console.log("Users fetched:", result.data);
+  //     const mappedUsers = result.data.map((user) => ({
+  //       id: user.userID,
+  //       name: user.userName,
+  //     }));
+  //     setAssignedTo(mappedUsers);
+  //   } catch (error) {
+  //     console.error("Error fetching users:", error);
+  //   }
+  // };
 
   const fetchUsers = async () => {
     try {
@@ -255,13 +274,40 @@ export default function index() {
       const mappedUsers = result.data.map((user) => ({
         id: user.userID,
         name: user.userName,
+        operationTypeID: user.operationTypeID, // Add operationTypeID from API
       }));
-        setAssignedTo(mappedUsers);
-      
+      setAllUsers(mappedUsers); // Store all users
+      setAssignedTo(mappedUsers); // Keep original state for compatibility
     } catch (error) {
       console.error("Error fetching users:", error);
     }
   };
+
+  // effect for operationType and allUsers to filter assigned users
+
+  useEffect(() => {
+    if (formData.operationType && allUsers.length > 0) {
+      // Filter users based on selected operation type
+      const filtered = allUsers.filter(
+        (user) => user.operationTypeID.toString() === formData.operationType
+      );
+      setFilteredAssignedTo(filtered);
+
+      // Reset assigned user if current selection is not valid for the new operation type
+      const currentAssignedUser = filtered.find(
+        (user) => user.id.toString() === formData.assignedUser
+      );
+      if (!currentAssignedUser) {
+        setFormData((prev) => ({
+          ...prev,
+          assignedUser: "", // Reset if current user is not valid for selected operation
+        }));
+      }
+    } else {
+      // If no operation type selected, show all users
+      setFilteredAssignedTo(allUsers);
+    }
+  }, [formData.operationType, allUsers]);
 
   const handleSearch = (e) => {
     setSearch(e.target.value);
@@ -355,6 +401,7 @@ export default function index() {
 
       if (editingId) {
         // For demo purposes, update order locally
+        console.log(editingId)
         const updatedOrder = {
           id: editingId,
           fClientID: selectedClient?.id || "",
@@ -373,12 +420,12 @@ export default function index() {
           status: formData.status,
         };
         // Update existing order
-        const response = await fetch(`/api/casting-orders/${editingId}`, {
-          method: 'PUT',
+        const response = await fetch(`${API_ENDPOINTS.ORDERS}/${editingId}`, {
+          method: "PUT",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
-          body: JSON.stringify(orderData)
+          body: JSON.stringify(orderData),
         });
 
         // const updatedOrder = {
@@ -425,11 +472,11 @@ export default function index() {
           status: formData.status,
         };
         const response = await fetch(API_ENDPOINTS.ORDERS, {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
-          body: JSON.stringify(newOrder)
+          body: JSON.stringify(newOrder),
         });
 
         // "Missing required fields: fClientID, fProductID, fOperationID, fAssignUserID, productQty, WeightTypeID, productWeightTypeID"
@@ -452,19 +499,17 @@ export default function index() {
     if (type === "Client") {
       // Redirect to client creation page or show client creation form
       nav("/dashboard/client-master");
-    }
-    else if (type === "Product") {
+    } else if (type === "Product") {
       // Redirect to product creation page or show product creation form
       nav("/dashboard/products");
     } else if (type === "assignedUser") {
       // Redirect to user creation page or show user creation form
       nav("/dashboard/user");
-    }else if (type === "operationType") {
+    } else if (type === "operationType") {
       // Redirect to user creation page or show user creation form
       nav("/dashboard/operation-type");
     }
   };
-
 
   // Handle Edit Order
   const handleEdit = (order) => {
@@ -517,11 +562,11 @@ export default function index() {
     try {
       // Call PHP API to delete
       const response = await fetch(`${API_ENDPOINTS.ORDERS}/${deleteId}`, {
-        method: 'DELETE'
+        method: "DELETE",
       });
-      
+
       if (!response.ok) {
-        throw new Error('Failed to delete order');
+        throw new Error("Failed to delete order");
       }
 
       // For demo purposes, delete locally
@@ -542,6 +587,88 @@ export default function index() {
     setShowDeleteConfirm(false);
     setDeleteId(null);
   };
+
+  //logic to calculate totalQty and totalPrice
+
+  const calculateQuantityAndPrice = (
+    weight,
+    weightType,
+    productWeight,
+    productWeightType,
+    pricePerQty
+  ) => {
+    if (!weight || !weightType || !productWeight || !productWeightType) {
+      return { totalQty: "", totalPrice: "" };
+    }
+
+    // Convert both weights to grams for consistent calculation
+    let totalWeightInGrams = 0;
+    let productWeightInGrams = 0;
+
+    // Convert total weight to grams
+    if (weightType === "KG") {
+      totalWeightInGrams = parseFloat(weight) * 1000;
+    } else {
+      totalWeightInGrams = parseFloat(weight);
+    }
+
+    // Convert product weight to grams
+    if (productWeightType === "KG") {
+      productWeightInGrams = parseFloat(productWeight) * 1000;
+    } else {
+      productWeightInGrams = parseFloat(productWeight);
+    }
+
+    // Calculate total quantity (how many pieces can be made)
+    const totalQty = Math.floor(totalWeightInGrams / productWeightInGrams);
+
+    // Calculate total price
+    const totalPrice = pricePerQty ? totalQty * parseFloat(pricePerQty) : "";
+
+    return { totalQty, totalPrice };
+  };
+
+  useEffect(() => {
+    // Get weight type names, handling both API response formats
+    const selectedWeightType = weightTypes.find(
+      (wt) => wt.id.toString() === formData.weightType
+    );
+    const selectedProductWeightType = productWeightType.find(
+      (pwt) => pwt.id.toString() === formData.productWeightType
+    );
+
+    const weightTypeName =
+      selectedWeightType?.name || selectedWeightType?.weightType;
+    const productWeightTypeName =
+      selectedProductWeightType?.name || selectedProductWeightType?.weightType;
+    const { totalQty, totalPrice } = calculateQuantityAndPrice(
+      formData.weight,
+      weightTypeName,
+      formData.productWeight,
+      productWeightTypeName,
+      formData.pricePerQty
+    );
+
+    // Only update if values have changed to avoid infinite loop
+    if (
+      totalQty.toString() !== formData.totalQty ||
+      totalPrice.toString() !== formData.totalPrice
+    ) {
+      setFormData((prev) => ({
+        ...prev,
+        totalQty: totalQty.toString(),
+        totalPrice: totalPrice.toString(),
+      }));
+    }
+  }, [
+    formData.weight,
+    formData.weightType,
+    formData.productWeight,
+    formData.productWeightType,
+    formData.pricePerQty,
+    weightTypes,
+    productWeightType,
+  ]);
 
   // Custom Dropdown Component with Add Link
   const CustomDropdown = ({
@@ -710,7 +837,7 @@ export default function index() {
             </div>
 
             {/* Total Qty */}
-            <div>
+            {/* <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Total Qty *
               </label>
@@ -723,6 +850,24 @@ export default function index() {
                 placeholder="Enter quantity"
                 required
               />
+            </div> */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Total Qty *
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  name="totalQty"
+                  value={formData.totalQty}
+                  readOnly
+                  className="w-full border rounded px-3 py-2 outline-none bg-gray-50 text-gray-700"
+                  placeholder="Calculated automatically"
+                />
+                <div className="absolute right-3 top-2 text-xs text-gray-500">
+                  Auto-calculated
+                </div>
+              </div>
             </div>
 
             {/* Price Per Qty */}
@@ -742,7 +887,7 @@ export default function index() {
             </div>
 
             {/* Total Price */}
-            <div>
+            {/* <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Total Price *
               </label>
@@ -755,6 +900,24 @@ export default function index() {
                 placeholder="Enter quantity"
                 required
               />
+            </div> */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Total Price *
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  name="totalPrice"
+                  value={formData.totalPrice}
+                  readOnly
+                  className="w-full border rounded px-3 py-2 outline-none bg-gray-50 text-gray-700"
+                  placeholder="Calculated automatically"
+                />
+                <div className="absolute right-3 top-2 text-xs text-gray-500">
+                  Auto-calculated
+                </div>
+              </div>
             </div>
 
             {/* Description */}
@@ -789,6 +952,7 @@ export default function index() {
             </div>
 
             {/* Assigned User Dropdown */}
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Assigned User *
@@ -797,10 +961,15 @@ export default function index() {
                 name="assignedUser"
                 value={formData.assignedUser}
                 onChange={handleFormChange}
-                options={assignedTo}
+                options={filteredAssignedTo} // Use filtered users instead of assignedTo
                 placeholder="Select User"
                 type="assignedUser"
               />
+              {formData.operationType && filteredAssignedTo.length === 0 && (
+                <p className="text-xs text-amber-600 mt-1">
+                  No users available for the selected operation type
+                </p>
+              )}
             </div>
 
             {/* Status */}
@@ -814,7 +983,7 @@ export default function index() {
                 onChange={handleFormChange}
                 className="w-full border rounded px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="processing">In Processing</option>
+                <option value="processing">Processing</option>
                 <option value="completed">Completed</option>
               </select>
             </div>
