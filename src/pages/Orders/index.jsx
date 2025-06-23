@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Plus, Pencil, Trash2, ArrowLeft, Save } from "lucide-react";
+import API_ENDPOINTS from "../../utils/apiConfig";
 const sampleData = [
   // {
   //   id: 5,
@@ -115,7 +116,7 @@ export default function index() {
   // Dropdown data states
   const [clients, setClients] = useState(sampleClients);
   const [product, setProduct] = useState(sampleProduct);
-  const [weightType, setWeightType] = useState(sampleWeightType);
+  const [weightTypes, setWeightTypes] = useState([]);
   const [productWeightType, setProductWeightType] = useState(
     sampleProductWeightType
   );
@@ -125,31 +126,133 @@ export default function index() {
 
   // Fetch dropdown data from PHP backend
   useEffect(() => {
-    fetchDropdownData();
+    fetchAllData();
   }, []);
 
-  const fetchDropdownData = async () => {
+  const fetchAllData = async () => {
     setLoading(true);
     try {
-      // Replace these with actual PHP API endpoints
-      // const clientsResponse = await fetch('/api/clients');
-      // const usersResponse = await fetch('/api/users');
-      // const productsResponse = await fetch('/api/products');
-
-      // const clientsData = await clientsResponse.json();
-      // const usersData = await usersResponse.json();
-      // const productsData = await productsResponse.json();
-
-      // setClients(clientsData);
-      // setUsers(usersData);
-      // setProducts(productsData);
-
-      // For demo purposes, using sample data
-      console.log("Fetching dropdown data from PHP backend...");
+      await Promise.all([
+        fetchOrders(),
+        fetchClients(),
+        fetchProducts(),
+        fetchWeightTypes(),
+        fetchOperationTypes(),
+        fetchUsers()
+      ]);
     } catch (error) {
-      console.error("Error fetching dropdown data:", error);
+      console.error("Error fetching data:", error);
+      alert("Failed to fetch data. Please try again.");
     } finally {
       setLoading(false);
+    }
+  };
+
+   const fetchOrders = async () => {
+    try {
+      const response = await fetch(API_ENDPOINTS.ORDERS);
+      const result = await response.json();
+      
+      if (result.outVal === 1) {
+        // Transform API data to match UI expectations
+        const transformedData = result.data.map(order => ({
+          id: order.orderID,
+          orderNo: order.orderNo,
+          client: order.clientName,
+          product: order.productName,
+          orderDate: order.orderOn,
+          weight: order.weight,
+          weightType: order.weightTypeText,
+          productWeight: order.productWeight,
+          productWeightType: order.productWeightText,
+          totalQty: order.productQty,
+          pricePerQty: order.pricePerQty,
+          totalPrice: order.totalPrice,
+          description: order.orderDetails,
+          operationType: order.operationName,
+          assignedUser: order.assignUser,
+          status: order.status === 1 ? "Completed" : "Processing",
+          // Keep original IDs for editing
+          fClientID: order.fClientID,
+          fProductID: order.fProductID,
+          WeightTypeID: order.weightTypeID,
+          productWeightTypeID: order.productWeightTypeID,
+          fOperationID: order.fOperationID,
+          fAssignUserID: order.fUserAssignID
+        }));
+        setData(transformedData);
+      }
+    } catch (error) {
+      console.error("Error fetching orders:", error);
+    }
+  };
+
+  const fetchClients = async () => {
+    try {
+      const response = await fetch(API_ENDPOINTS.CLIENTS);
+      const result = await response.json();
+      if (result.outVal === 1) {
+        setClients(result.data);
+      }
+    } catch (error) {
+      console.error("Error fetching clients:", error);
+    }
+  };
+
+  const fetchProducts = async () => {
+    try {
+      const response = await fetch(API_ENDPOINTS.PRODUCTS);
+      const result = await response.json();
+      if (result.outVal === 1) {
+        setProduct(result.data);
+      }
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    }
+  };
+
+  const fetchWeightTypes = async () => {
+    try {
+      const response = await fetch(API_ENDPOINTS.WEIGHT);
+      const result = await response.json();
+      if (result.outVal === 1) {
+        // Filter to only include gram and kg
+        const filteredWeights = result.data.filter(weight => 
+          weight.name.toLowerCase() === 'kg' || weight.name.toLowerCase() === 'gram'
+        );
+        setWeightTypes(filteredWeights);
+      }
+    } catch (error) {
+      console.error("Error fetching weight types:", error);
+      // Fallback data
+      setWeightTypes([
+        { id: 1, name: "kg" },
+        { id: 2, name: "gram" }
+      ]);
+    }
+  };
+
+  const fetchOperationTypes = async () => {
+    try {
+      const response = await fetch(API_ENDPOINTS.OPERATIONS);
+      const result = await response.json();
+      if (result.outVal === 1) {
+        setOperationTypes(result.data);
+      }
+    } catch (error) {
+      console.error("Error fetching operation types:", error);
+    }
+  };
+
+  const fetchUsers = async () => {
+    try {
+      const response = await fetch(API_ENDPOINTS.USERS);
+      const result = await response.json();
+      if (result.outVal === 1) {
+        setUsers(result.data);
+      }
+    } catch (error) {
+      console.error("Error fetching users:", error);
     }
   };
 

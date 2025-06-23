@@ -12,10 +12,11 @@ export const API_ENDPOINTS = {
   RESET_PASSWORD: `${API_BASE_URL}/auth/reset-password.php`,
 
   // Orders
-  ORDERS: `${API_BASE_URL}/orders.php`,
+  ORDERS: `${API_BASE_URL}/order/order.php`,
 
   // casting orders
   CASTING_ORDERS: `${API_BASE_URL}/casting-order/casting-order.php`,
+
   // Master data
   WEIGHT_TYPES: `${API_BASE_URL}/weight-types.php`,
 
@@ -30,6 +31,9 @@ export const API_ENDPOINTS = {
 
   //operations apis
   OPERATIONS: `${API_BASE_URL}/operation/operation-type.php`,
+
+  //weight apis
+  WEIGHT: `${API_BASE_URL}/weight/weight.php`,
   
   // Dashboard
   DASHBOARD_STATS: `${API_BASE_URL}/dashboard-stats.php`,
