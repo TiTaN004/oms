@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Plus, Pencil, Trash2, ArrowLeft, Save } from "lucide-react";
 import API_ENDPOINTS from "../../utils/apiConfig";
+import { useNavigate } from "react-router-dom";
 const sampleData = [
   // {
   //   id: 5,
@@ -124,6 +125,8 @@ export default function index() {
   const [assignedTo, setAssignedTo] = useState(sampleAssginedUser);
   const [loading, setLoading] = useState(false);
 
+  const nav = useNavigate();
+
   // Fetch dropdown data from PHP backend
   useEffect(() => {
     fetchAllData();
@@ -138,7 +141,7 @@ export default function index() {
         fetchProducts(),
         fetchWeightTypes(),
         fetchOperationTypes(),
-        fetchUsers()
+        fetchUsers(),
       ]);
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -148,14 +151,14 @@ export default function index() {
     }
   };
 
-   const fetchOrders = async () => {
+  const fetchOrders = async () => {
     try {
       const response = await fetch(API_ENDPOINTS.ORDERS);
       const result = await response.json();
-      
+
       if (result.outVal === 1) {
         // Transform API data to match UI expectations
-        const transformedData = result.data.map(order => ({
+        const transformedData = result.data.map((order) => ({
           id: order.orderID,
           orderNo: order.orderNo,
           client: order.clientName,
@@ -178,7 +181,7 @@ export default function index() {
           WeightTypeID: order.weightTypeID,
           productWeightTypeID: order.productWeightTypeID,
           fOperationID: order.fOperationID,
-          fAssignUserID: order.fUserAssignID
+          fAssignUserID: order.fUserAssignID,
         }));
         setData(transformedData);
       }
@@ -191,9 +194,11 @@ export default function index() {
     try {
       const response = await fetch(API_ENDPOINTS.CLIENTS);
       const result = await response.json();
-      if (result.outVal === 1) {
-        setClients(result.data);
-      }
+      const mappedClients = result.data.map((product) => ({
+        id: product.id,
+        name: product.clientName,
+      }));
+        setClients(mappedClients);
     } catch (error) {
       console.error("Error fetching clients:", error);
     }
@@ -203,9 +208,11 @@ export default function index() {
     try {
       const response = await fetch(API_ENDPOINTS.PRODUCTS);
       const result = await response.json();
-      if (result.outVal === 1) {
-        setProduct(result.data);
-      }
+      const mappedProducts = result.data.map((product) => ({
+        id: product.id || product.srno,
+        name: product.product_name || product.productName,
+      }));
+      setProduct(mappedProducts);
     } catch (error) {
       console.error("Error fetching products:", error);
     }
@@ -215,19 +222,14 @@ export default function index() {
     try {
       const response = await fetch(API_ENDPOINTS.WEIGHT);
       const result = await response.json();
-      if (result.outVal === 1) {
-        // Filter to only include gram and kg
-        const filteredWeights = result.data.filter(weight => 
-          weight.name.toLowerCase() === 'kg' || weight.name.toLowerCase() === 'gram'
-        );
-        setWeightTypes(filteredWeights);
-      }
+      setProductWeightType(result.data);
+      setWeightTypes(result.data);
     } catch (error) {
       console.error("Error fetching weight types:", error);
       // Fallback data
       setWeightTypes([
         { id: 1, name: "kg" },
-        { id: 2, name: "gram" }
+        { id: 2, name: "gram" },
       ]);
     }
   };
@@ -236,9 +238,11 @@ export default function index() {
     try {
       const response = await fetch(API_ENDPOINTS.OPERATIONS);
       const result = await response.json();
-      if (result.outVal === 1) {
-        setOperationTypes(result.data);
-      }
+      const mappedOperationTypes = result.data.map((product) => ({
+        id: product.id,
+        name: product.operationName,
+      }));
+        setOperationType(mappedOperationTypes);
     } catch (error) {
       console.error("Error fetching operation types:", error);
     }
@@ -248,9 +252,12 @@ export default function index() {
     try {
       const response = await fetch(API_ENDPOINTS.USERS);
       const result = await response.json();
-      if (result.outVal === 1) {
-        setUsers(result.data);
-      }
+      const mappedUsers = result.data.map((user) => ({
+        id: user.userID,
+        name: user.userName,
+      }));
+        setAssignedTo(mappedUsers);
+      
     } catch (error) {
       console.error("Error fetching users:", error);
     }
@@ -315,7 +322,7 @@ export default function index() {
       const selectedProduct = product.find(
         (p) => p.id.toString() === formData.product
       );
-      const selectedWeightType = weightType.find(
+      const selectedWeightType = weightTypes.find(
         (u) => u.id.toString() === formData.weightType
       );
       const selectedProductWeightType = productWeightType.find(
@@ -347,33 +354,50 @@ export default function index() {
       };
 
       if (editingId) {
-        // Update existing order
-        // const response = await fetch(`/api/casting-orders/${editingId}`, {
-        //   method: 'PUT',
-        //   headers: {
-        //     'Content-Type': 'application/json',
-        //   },
-        //   body: JSON.stringify(orderData)
-        // });
-
         // For demo purposes, update order locally
         const updatedOrder = {
           id: editingId,
-          client: selectedClient?.name || "",
-          product: selectedProduct?.name || "",
+          fClientID: selectedClient?.id || "",
+          fProductID: selectedProduct?.id || "",
           orderDate: formData.orderDate,
           weight: formData.weight,
-          weightType: selectedWeightType?.name || "",
+          WeightTypeID: selectedWeightType?.id || "",
           productWeight: formData.productWeight,
-          productWeightType: selectedProductWeightType?.name || "",
-          totalQty: formData.totalQty,
+          productWeightTypeID: selectedProductWeightType?.id || "",
+          productQty: formData.totalQty,
           pricePerQty: formData.pricePerQty,
           totalPrice: formData.totalPrice,
           description: formData.description,
-          operationType: selectedOperationType?.name || "",
-          assignedUser: selectedAssignedTo?.name || "",
+          fOperationID: selectedOperationType?.id || "",
+          fAssignUserID: selectedAssignedTo?.id || "",
           status: formData.status,
         };
+        // Update existing order
+        const response = await fetch(`/api/casting-orders/${editingId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(orderData)
+        });
+
+        // const updatedOrder = {
+        //   id: editingId,
+        //   client: selectedClient?.name || "",
+        //   product: selectedProduct?.name || "",
+        //   orderDate: formData.orderDate,
+        //   weight: formData.weight,
+        //   weightType: selectedWeightType?.name || "",
+        //   productWeight: formData.productWeight,
+        //   productWeightType: selectedProductWeightType?.name || "",
+        //   totalQty: formData.totalQty,
+        //   pricePerQty: formData.pricePerQty,
+        //   totalPrice: formData.totalPrice,
+        //   description: formData.description,
+        //   operationType: selectedOperationType?.name || "",
+        //   assignedUser: selectedAssignedTo?.name || "",
+        //   status: formData.status,
+        // };
 
         setData((prev) =>
           prev.map((item) => (item.id === editingId ? updatedOrder : item))
@@ -383,32 +407,32 @@ export default function index() {
         setEditingId(null);
       } else {
         // Create new order
-        // const response = await fetch('/api/casting-orders', {
-        //   method: 'POST',
-        //   headers: {
-        //     'Content-Type': 'application/json',
-        //   },
-        //   body: JSON.stringify(orderData)
-        // });
-
         // For demo purposes, create new order locally
         const newOrder = {
-          id: `CO${String(data.length + 1).padStart(4, "0")}`,
-          client: selectedClient?.name || "",
-          product: selectedProduct?.name || "",
+          fClientID: selectedClient?.id || "",
+          fProductID: selectedProduct?.id || "",
           orderDate: formData.orderDate,
           weight: formData.weight,
-          weightType: selectedWeightType?.name || "",
+          WeightTypeID: selectedWeightType?.id || "",
           productWeight: formData.productWeight,
-          productWeightType: selectedProductWeightType?.name || "",
-          totalQty: formData.totalQty,
+          productWeightTypeID: selectedProductWeightType?.id || "",
+          productQty: formData.totalQty,
           pricePerQty: formData.pricePerQty,
           totalPrice: formData.totalPrice,
           description: formData.description,
-          operationType: selectedOperationType?.name || "",
-          assignedUser: selectedAssignedTo?.name || "",
+          fOperationID: selectedOperationType?.id || "",
+          fAssignUserID: selectedAssignedTo?.id || "",
           status: formData.status,
         };
+        const response = await fetch(API_ENDPOINTS.ORDERS, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(newOrder)
+        });
+
+        // "Missing required fields: fClientID, fProductID, fOperationID, fAssignUserID, productQty, WeightTypeID, productWeightTypeID"
 
         setData((prev) => [...prev, newOrder]);
 
@@ -425,28 +449,40 @@ export default function index() {
   };
 
   const handleAddNewItem = (type) => {
-    // This would open a modal or navigate to add new client/user/product
-    alert(`Add new ${type} functionality would be implemented here`);
-    // Example: window.open(`/add-${type}`, '_blank');
+    if (type === "Client") {
+      // Redirect to client creation page or show client creation form
+      nav("/dashboard/client-master");
+    }
+    else if (type === "Product") {
+      // Redirect to product creation page or show product creation form
+      nav("/dashboard/products");
+    } else if (type === "assignedUser") {
+      // Redirect to user creation page or show user creation form
+      nav("/dashboard/user");
+    }else if (type === "operationType") {
+      // Redirect to user creation page or show user creation form
+      nav("/dashboard/operation-type");
+    }
   };
+
 
   // Handle Edit Order
   const handleEdit = (order) => {
-    console.log("order ", order)
+    console.log("order ", order);
     // Find the corresponding IDs for the dropdowns
     const clientId = clients.find((c) => c.name === order.client)?.id || "";
 
-    console.log("clients", clients)
+    console.log("clients", clients);
     const weightTypeId =
-      weightType.find((p) => p.name === order.weightType)?.id || "";
+      weightTypes.find((p) => p.id === order.WeightTypeID)?.id || "";
     const productId = product.find((p) => p.name === order.product)?.id || "";
     const productWeightTypeId =
-      productWeightType.find((p) => p.name === order.productWeightType)?.id ||
+      productWeightType.find((p) => p.id === order.productWeightTypeID)?.id ||
       "";
     const operationTypeId =
       operationType.find((p) => p.name === order.operationType)?.id || "";
     const assignedToId =
-      assignedTo.find((p) => p.name === order.assignedTo)?.id || "";
+      assignedTo.find((p) => p.id === order.fAssignUserID)?.id || "";
 
     setFormData({
       client: clientId.toString(),
@@ -480,13 +516,13 @@ export default function index() {
     setLoading(true);
     try {
       // Call PHP API to delete
-      // const response = await fetch(`/api/casting-orders/${deleteId}`, {
-      //   method: 'DELETE'
-      // });
-      //
-      // if (!response.ok) {
-      //   throw new Error('Failed to delete order');
-      // }
+      const response = await fetch(`${API_ENDPOINTS.ORDERS}/${deleteId}`, {
+        method: 'DELETE'
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to delete order');
+      }
 
       // For demo purposes, delete locally
       setData((prev) => prev.filter((item) => item.id !== deleteId));
@@ -636,9 +672,9 @@ export default function index() {
                 name="weightType"
                 value={formData.weightType}
                 onChange={handleFormChange}
-                options={weightType}
-                placeholder="Select User"
-                type="weightType"
+                options={weightTypes}
+                placeholder="Select Weight Type"
+                type="text"
               />
             </div>
 
@@ -668,7 +704,7 @@ export default function index() {
                 value={formData.productWeightType}
                 onChange={handleFormChange}
                 options={productWeightType}
-                placeholder="Select User"
+                placeholder="Select Product Weight Type"
                 type="productWeightType"
               />
             </div>
