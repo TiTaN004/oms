@@ -43,8 +43,6 @@ CREATE TABLE `casting_order` (
 -- Dumping data for table `casting_order`
 --
 
-INSERT INTO `casting_order` (`CastingOrderId`, `fClientID`, `fProductID`, `fAssignUserID`, `fOperationID`, `quantity`, `size`, `order_date`, `status`) VALUES
-(2, 3, 5, 3, 1, 10, 5, '2025-06-23 00:00:00', 'Processing');
 
 -- --------------------------------------------------------
 
@@ -62,8 +60,6 @@ CREATE TABLE `client_master` (
 -- Dumping data for table `client_master`
 --
 
-INSERT INTO `client_master` (`id`, `clientName`, `isActive`) VALUES
-(3, 'testbhai', 1);
 
 -- --------------------------------------------------------
 
@@ -81,16 +77,6 @@ CREATE TABLE `operation_type` (
 -- Dumping data for table `operation_type`
 --
 
-INSERT INTO `operation_type` (`id`, `operationName`, `isActive`) VALUES
-(1, 'admin', 1),
-(2, 'fortune casting', 1),
-(3, 'Black Matt', 1),
-(4, 'GE', 1),
-(5, 'Buff', 1),
-(6, 'Tunning', 1),
-(7, 'VMC', 1),
-(8, 'Crome', 1),
-(9, 'Colour', 1);
 
 -- --------------------------------------------------------
 
@@ -149,10 +135,6 @@ CREATE TABLE `product` (
 -- Dumping data for table `product`
 --
 
-INSERT INTO `product` (`id`, `product_name`, `product_image`, `is_active`) VALUES
-(5, 't', 'product_6856ead0b055f.png', 1),
-(7, '00000', 'product_6856eac51eeeb.png', 1);
-
 -- --------------------------------------------------------
 
 --
@@ -175,10 +157,6 @@ CREATE TABLE `user` (
 --
 -- Dumping data for table `user`
 --
-
-INSERT INTO `user` (`userID`, `fullName`, `userName`, `emailID`, `mobileNo`, `password`, `token`, `operationTypeID`, `isAdmin`, `isActive`) VALUES
-(1, 'admin', 'admin', 'mananrathod214@gmail.com', '111111111', '1111', 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsImp0aSI6MSwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvbmFtZSI6ImFkbWluIiwiVXNlcklkIjoiMSIsImV4cCI6MTc1MDU5MzM4MCwiaXNzIjoib3Rwc3lzdGVtIiwiYXVkIjoib3Rwc3lzdGVtIiwiaWF0IjoxNzUwNTg5NzgwfQ.McVNT-TUV52jBUUyBmz_Pu-EF_UH_JRhH7VPJ784Vvg', 1, 1, 1),
-(3, 'test', 'test', 'test123@gmail.com', '111111112', '1', 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0IiwianRpIjozLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoidGVzdCIsIlVzZXJJZCI6IjMiLCJleHAiOjE3NTA1MDM3NDMsImlzcyI6Im90cHN5c3RlbSIsImF1ZCI6Im90cHN5c3RlbSIsImlhdCI6MTc1MDUwMDE0M30.4v_Y8zQcjnbD0sdGUgYdWKK0QY-Y0ksHSTvA3H_rYxY', 2, 0, 1);
 
 -- --------------------------------------------------------
 

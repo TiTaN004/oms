@@ -89,6 +89,21 @@ const sampleOperationType = [
   { id: 4, name: "Tunning" },
 ];
 const sampleAssginedUser = [{ id: 1, name: "null" }];
+// Status utility functions
+const getStatusLabel = (status) => {
+  return status === 1 ? "Completed" : "Processing";
+};
+
+const getStatusValue = (status) => {
+  if (typeof status === 'string') {
+    return status.toLowerCase() === 'completed' ? 1 : 0;
+  }
+  return status;
+};
+
+const getStatusIcon = (status) => {
+  return status === 1 ? "🟢" : "🔴";
+};
 
 export default function index() {
   const [search, setSearch] = useState("");
@@ -111,7 +126,7 @@ export default function index() {
     description: "",
     operationType: "",
     assignedUser: "",
-    status: "",
+    status: 0, // Changed to numeric default
   });
 
   // Dropdown data states
@@ -178,7 +193,7 @@ export default function index() {
           description: order.orderDetails,
           operationType: order.operationName,
           assignedUser: order.assignUser,
-          status: order.status === 1 ? "Completed" : "Processing",
+          status: order.status === "1" ? "Completed" : "Processing", 
           // Keep original IDs for editing
           fClientID: order.fClientID,
           fProductID: order.fProductID,
@@ -252,21 +267,6 @@ export default function index() {
     }
   };
 
-  // const fetchUsers = async () => {
-  //   try {
-  //     const response = await fetch(API_ENDPOINTS.USERS);
-  //     const result = await response.json();
-  //     console.log("Users fetched:", result.data);
-  //     const mappedUsers = result.data.map((user) => ({
-  //       id: user.userID,
-  //       name: user.userName,
-  //     }));
-  //     setAssignedTo(mappedUsers);
-  //   } catch (error) {
-  //     console.error("Error fetching users:", error);
-  //   }
-  // };
-
   const fetchUsers = async () => {
     try {
       const response = await fetch(API_ENDPOINTS.USERS);
@@ -284,7 +284,6 @@ export default function index() {
   };
 
   // effect for operationType and allUsers to filter assigned users
-
   useEffect(() => {
     if (formData.operationType && allUsers.length > 0) {
       // Filter users based on selected operation type
@@ -317,54 +316,97 @@ export default function index() {
     item.client.toLowerCase().includes(search.toLowerCase())
   );
 
-  // const handleStatusChange = (id, status) => {
-  //   setData((prev) =>
-  //     prev.map((item) => (item.id === id ? { ...item, status } : item))
-  //   );
+  // Fixed status change handler
+  // const handleStatusChange = async (id, newStatus) => {
+  //   setLoading(true);
+  //   try {
+  //     // Find the order to get its details
+  //     const order = data.find((item) => item.id === id);
+  //     if (!order) {
+  //       throw new Error("Order not found");
+  //     }
+
+  //     // Convert status to numeric value for API
+  //     const statusValue = getStatusValue(newStatus);
+
+  //     // Prepare the status update payload
+  //     const statusUpdateData = {
+  //       status: statusValue,
+  //     };
+
+  //     // Call API to update status
+  //     const response = await fetch(`${API_ENDPOINTS.ORDERS}/${id}`, {
+  //       method: "PUT",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //       body: JSON.stringify(statusUpdateData),
+  //     });
+
+  //     if (!response.ok) {
+  //       throw new Error("Failed to update status");
+  //     }
+
+  //     // Update local state with numeric status
+  //     setData((prev) =>
+  //       prev.map((item) => 
+  //         item.id === id ? { ...item, status: statusValue } : item
+  //       )
+  //     );
+
+  //     console.log("Status updated successfully:", { id, status: statusValue });
+  //   } catch (error) {
+  //     console.error("Error updating status:", error);
+  //     alert("Failed to update status. Please try again.");
+  //     // Optionally refresh data from API to ensure consistency
+  //     fetchOrders();
+  //   } finally {
+  //     setLoading(false);
+  //   }
   // };
 
   const handleStatusChange = async (id, status) => {
-    setLoading(true);
-    try {
-      // Find the order to get its details
-      const order = data.find((item) => item.id === id);
-      if (!order) {
-        throw new Error("Order not found");
-      }
-
-      // Prepare the status update payload
-      const statusUpdateData = {
-        status: status === "completed" ? 1 : 0, // Convert to API expected format
-      };
-
-      // Call API to update status
-      const response = await fetch(`${API_ENDPOINTS.ORDERS}/${id}`, {
-        method: "PUT", // or PATCH if your API supports it
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(statusUpdateData),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to update status");
-      }
-
-      // Update local state only if API call succeeds
-      setData((prev) =>
-        prev.map((item) => (item.id === id ? { ...item, status } : item))
-      );
-
-      console.log("Status updated successfully:", { id, status });
-    } catch (error) {
-      console.error("Error updating status:", error);
-      alert("Failed to update status. Please try again.");
-      // Optionally refresh data from API to ensure consistency
-      fetchOrders();
-    } finally {
-      setLoading(false);
+  setLoading(true);
+  try {
+    // Find the order to get its details
+    const order = data.find((item) => item.id === id);
+    if (!order) {
+      throw new Error("Order not found");
     }
-  };
+
+    // Prepare the status update payload - convert status to API format
+    const statusUpdateData = {
+      status: status === "Completed" ? "1" : "0", // Convert to string format expected by API
+    };
+
+    // Call API to update status
+    const response = await fetch(`${API_ENDPOINTS.ORDERS}/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(statusUpdateData),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to update status");
+    }
+
+    // Update local state only if API call succeeds
+    setData((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, status } : item))
+    );
+
+    console.log("Status updated successfully:", { id, status });
+  } catch (error) {
+    console.error("Error updating status:", error);
+    alert("Failed to update status. Please try again.");
+    // Optionally refresh data from API to ensure consistency
+    fetchOrders();
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleAddOrder = () => {
     setShowAddForm(true);
@@ -386,17 +428,26 @@ export default function index() {
       description: "",
       operationType: "",
       assignedUser: "",
-      status: "processing",
+      status: 0, // Reset to numeric default
     });
     setEditingId(null);
   };
 
   const handleFormChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    
+    // Handle status field specifically
+    if (name === 'status') {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: getStatusValue(value), // Convert to numeric
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
   };
 
   const handleFormSubmit = async () => {
@@ -407,7 +458,6 @@ export default function index() {
       const selectedClient = clients.find(
         (c) => c.id.toString() === formData.client
       );
-      console.log(selectedClient);
       const selectedProduct = product.find(
         (p) => p.id.toString() === formData.product
       );
@@ -439,29 +489,10 @@ export default function index() {
         description: formData.description,
         operationType: formData.operationType,
         assignedUser: formData.assignedUser,
-        status: formData.status,
+        status: formData.status === "Completed" ? "1" : "0",// Already numeric
       };
 
       if (editingId) {
-        // For demo purposes, update order locally
-        console.log(editingId);
-        const updatedOrder = {
-          id: editingId,
-          fClientID: selectedClient?.id || "",
-          fProductID: selectedProduct?.id || "",
-          orderDate: formData.orderDate,
-          weight: formData.weight,
-          WeightTypeID: selectedWeightType?.id || "",
-          productWeight: formData.productWeight,
-          productWeightTypeID: selectedProductWeightType?.id || "",
-          productQty: formData.totalQty,
-          pricePerQty: formData.pricePerQty,
-          totalPrice: formData.totalPrice,
-          description: formData.description,
-          fOperationID: selectedOperationType?.id || "",
-          fAssignUserID: selectedAssignedTo?.id || "",
-          status: formData.status === "Completed" ? 1 : 0,
-        };
         // Update existing order
         const response = await fetch(`${API_ENDPOINTS.ORDERS}/${editingId}`, {
           method: "PUT",
@@ -471,23 +502,35 @@ export default function index() {
           body: JSON.stringify(orderData),
         });
 
-        // const updatedOrder = {
-        //   id: editingId,
-        //   client: selectedClient?.name || "",
-        //   product: selectedProduct?.name || "",
-        //   orderDate: formData.orderDate,
-        //   weight: formData.weight,
-        //   weightType: selectedWeightType?.name || "",
-        //   productWeight: formData.productWeight,
-        //   productWeightType: selectedProductWeightType?.name || "",
-        //   totalQty: formData.totalQty,
-        //   pricePerQty: formData.pricePerQty,
-        //   totalPrice: formData.totalPrice,
-        //   description: formData.description,
-        //   operationType: selectedOperationType?.name || "",
-        //   assignedUser: selectedAssignedTo?.name || "",
-        //   status: formData.status,
-        // };
+        if (!response.ok) {
+          throw new Error("Failed to update order");
+        }
+
+        // Update local state
+        const updatedOrder = {
+          id: editingId,
+          client: selectedClient?.name || "",
+          product: selectedProduct?.name || "",
+          orderDate: formData.orderDate,
+          weight: formData.weight,
+          weightType: selectedWeightType?.name || "",
+          productWeight: formData.productWeight,
+          productWeightType: selectedProductWeightType?.name || "",
+          totalQty: formData.totalQty,
+          pricePerQty: formData.pricePerQty,
+          totalPrice: formData.totalPrice,
+          description: formData.description,
+          operationType: selectedOperationType?.name || "",
+          assignedUser: selectedAssignedTo?.name || "",
+          status: formData.status === "Completed" ? "1" : "0",
+          // Keep original IDs for editing
+          fClientID: selectedClient?.id || "",
+          fProductID: selectedProduct?.id || "",
+          WeightTypeID: selectedWeightType?.id || "",
+          productWeightTypeID: selectedProductWeightType?.id || "",
+          fOperationID: selectedOperationType?.id || "",
+          fAssignUserID: selectedAssignedTo?.id || "",
+        };
 
         setData((prev) =>
           prev.map((item) => (item.id === editingId ? updatedOrder : item))
@@ -497,8 +540,7 @@ export default function index() {
         setEditingId(null);
       } else {
         // Create new order
-        // For demo purposes, create new order locally
-        const newOrder = {
+        const newOrderData = {
           fClientID: selectedClient?.id || "",
           fProductID: selectedProduct?.id || "",
           orderDate: formData.orderDate,
@@ -512,20 +554,50 @@ export default function index() {
           description: formData.description,
           fOperationID: selectedOperationType?.id || "",
           fAssignUserID: selectedAssignedTo?.id || "",
-          status: formData.status,
+          status: formData.status === "Completed" ? "1" : "0", // Keep numeric
         };
+
         const response = await fetch(API_ENDPOINTS.ORDERS, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(newOrder),
+          body: JSON.stringify(newOrderData),
         });
 
-        // "Missing required fields: fClientID, fProductID, fOperationID, fAssignUserID, productQty, WeightTypeID, productWeightTypeID"
+        if (!response.ok) {
+          throw new Error("Failed to create order");
+        }
+
+        const result = await response.json();
+        
+        // Create new order for local state
+        const newOrder = {
+          id: result.orderId || Date.now(), // Use returned ID or fallback
+          client: selectedClient?.name || "",
+          product: selectedProduct?.name || "",
+          orderDate: formData.orderDate,
+          weight: formData.weight,
+          weightType: selectedWeightType?.name || "",
+          productWeight: formData.productWeight,
+          productWeightType: selectedProductWeightType?.name || "",
+          totalQty: formData.totalQty,
+          pricePerQty: formData.pricePerQty,
+          totalPrice: formData.totalPrice,
+          description: formData.description,
+          operationType: selectedOperationType?.name || "",
+          assignedUser: selectedAssignedTo?.name || "",
+          status: formData.status, // Keep numeric
+          // Store IDs for future editing
+          fClientID: selectedClient?.id || "",
+          fProductID: selectedProduct?.id || "",
+          WeightTypeID: selectedWeightType?.id || "",
+          productWeightTypeID: selectedProductWeightType?.id || "",
+          fOperationID: selectedOperationType?.id || "",
+          fAssignUserID: selectedAssignedTo?.id || "",
+        };
 
         setData((prev) => [...prev, newOrder]);
-
         console.log("Order created successfully:", orderData);
       }
 
@@ -540,16 +612,12 @@ export default function index() {
 
   const handleAddNewItem = (type) => {
     if (type === "Client") {
-      // Redirect to client creation page or show client creation form
       nav("/dashboard/client-master");
     } else if (type === "Product") {
-      // Redirect to product creation page or show product creation form
       nav("/dashboard/products");
     } else if (type === "assignedUser") {
-      // Redirect to user creation page or show user creation form
       nav("/dashboard/user");
     } else if (type === "operationType") {
-      // Redirect to user creation page or show user creation form
       nav("/dashboard/operation-type");
     }
   };
@@ -559,8 +627,6 @@ export default function index() {
     console.log("order ", order);
     // Find the corresponding IDs for the dropdowns
     const clientId = clients.find((c) => c.name === order.client)?.id || "";
-
-    console.log("clients", clients);
     const weightTypeId =
       weightTypes.find((p) => p.id === order.WeightTypeID)?.id || "";
     const productId = product.find((p) => p.name === order.product)?.id || "";
@@ -575,7 +641,7 @@ export default function index() {
     setFormData({
       client: clientId.toString(),
       product: productId.toString(),
-      orderDate: order.orderDate,
+      orderDate: new Date(order.orderDate).toISOString().split('T')[0],
       weight: order.weight,
       weightType: weightTypeId.toString(),
       productWeight: order.productWeight,
@@ -586,7 +652,7 @@ export default function index() {
       description: order.description,
       operationType: operationTypeId.toString(),
       assignedUser: assignedToId.toString(),
-      status: order.status,
+      status: order.status, // Keep numeric status
     });
 
     setEditingId(order.id);
@@ -595,7 +661,6 @@ export default function index() {
 
   // Handle Delete Order
   const handleDelete = (id) => {
-    console.log("clicked");
     setDeleteId(id);
     setShowDeleteConfirm(true);
   };
@@ -612,7 +677,7 @@ export default function index() {
         throw new Error("Failed to delete order");
       }
 
-      // For demo purposes, delete locally
+      // Delete locally
       setData((prev) => prev.filter((item) => item.id !== deleteId));
 
       console.log("Order deleted successfully:", deleteId);
@@ -632,7 +697,6 @@ export default function index() {
   };
 
   //logic to calculate totalQty and totalPrice
-
   const calculateQuantityAndPrice = (
     weight,
     weightType,
@@ -714,7 +778,7 @@ export default function index() {
   ]);
 
   // Custom Dropdown Component with Add Link
-  const CustomDropdown = ({
+const CustomDropdown = ({
     name,
     value,
     onChange,
@@ -1026,8 +1090,8 @@ export default function index() {
                 onChange={handleFormChange}
                 className="w-full border rounded px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="processing">Processing</option>
-                <option value="completed">Completed</option>
+                <option value="Processing">Processing</option>
+                <option value="Completed">Completed</option>
               </select>
             </div>
           </div>

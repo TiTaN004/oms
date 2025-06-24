@@ -42,7 +42,7 @@ export default function index() {
         fetchCastingOrders(),
         fetchClients(),
         fetchUsers(),
-        fetchProducts()
+        fetchProducts(),
       ]);
     } catch (error) {
       setError("Failed to load data. Please refresh the page.");
@@ -60,13 +60,13 @@ export default function index() {
           "Content-Type": "application/json",
         },
       });
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       const responseData = await response.json();
-      
+
       if (responseData.success) {
         setData(responseData.data || []);
       } else {
@@ -86,17 +86,17 @@ export default function index() {
           "Content-Type": "application/json",
         },
       });
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       const clientData = await response.json();
       if (clientData.statusCode === 200) {
         // Map the client data to match expected format
-        const mappedClients = clientData.data.map(client => ({
+        const mappedClients = clientData.data.map((client) => ({
           id: client.id,
-          name: client.clientName || client.client_name || client.name
+          name: client.clientName || client.client_name || client.name,
         }));
         setClients(mappedClients);
       } else {
@@ -117,19 +117,23 @@ export default function index() {
           "Content-Type": "application/json",
         },
       });
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       const userData = await response.json();
       if (userData.statusCode === 200) {
         // Map the user data to match expected format
-        const mappedUsers = userData.data.map(user => ({
+        const mappedUsers = userData.data.map((user) => ({
           id: user.userID || user.id,
-          name: user.fullName || user.name
+          name: user.fullName || user.name,
+          operationTypeID: user.operationTypeID
         }));
-        setUsers(mappedUsers);
+        const filtered = mappedUsers.filter(
+          (user) => user.operationTypeID === "2"
+        );
+        setUsers(filtered);
       } else {
         throw new Error(userData.error || "Failed to fetch users");
       }
@@ -147,17 +151,17 @@ export default function index() {
           "Content-Type": "application/json",
         },
       });
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       const productData = await response.json();
       if (productData.success) {
         // Map the product data to match expected format
-        const mappedProducts = productData.data.map(product => ({
+        const mappedProducts = productData.data.map((product) => ({
           id: product.id || product.srno,
-          name: product.product_name || product.productName
+          name: product.product_name || product.productName,
         }));
         setProducts(mappedProducts);
       } else {
@@ -173,15 +177,16 @@ export default function index() {
     setSearch(e.target.value);
   };
 
-  const filteredData = data.filter((item) =>
-    item.client?.toLowerCase().includes(search.toLowerCase()) ||
-    item.product?.toLowerCase().includes(search.toLowerCase()) ||
-    item.user?.toLowerCase().includes(search.toLowerCase())
+  const filteredData = data.filter(
+    (item) =>
+      item.client?.toLowerCase().includes(search.toLowerCase()) ||
+      item.product?.toLowerCase().includes(search.toLowerCase()) ||
+      item.user?.toLowerCase().includes(search.toLowerCase())
   );
 
   const handleStatusChange = async (id, status) => {
     try {
-      const orderToUpdate = data.find(item => item.id === id);
+      const orderToUpdate = data.find((item) => item.id === id);
       if (!orderToUpdate) return;
 
       const updateData = {
@@ -191,15 +196,15 @@ export default function index() {
         qty: orderToUpdate.qty,
         size: orderToUpdate.size,
         order_date: orderToUpdate.orderDate,
-        status: status
+        status: status,
       };
 
       const response = await fetch(`${API_ENDPOINTS.CASTING_ORDERS}/${id}`, {
-        method: 'PUT',
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(updateData)
+        body: JSON.stringify(updateData),
       });
 
       if (!response.ok) {
@@ -207,7 +212,7 @@ export default function index() {
       }
 
       const result = await response.json();
-      
+
       if (result.success) {
         // Update local state
         setData((prev) =>
@@ -254,8 +259,14 @@ export default function index() {
 
     try {
       // Validate required fields
-      if (!formData.client || !formData.user || !formData.product || 
-          !formData.qty || !formData.size || !formData.orderDate) {
+      if (
+        !formData.client ||
+        !formData.user ||
+        !formData.product ||
+        !formData.qty ||
+        !formData.size ||
+        !formData.orderDate
+      ) {
         alert("Please fill in all required fields.");
         return;
       }
@@ -273,20 +284,20 @@ export default function index() {
 
       let response;
       let url = API_ENDPOINTS.CASTING_ORDERS;
-      let method = 'POST';
+      let method = "POST";
 
       if (editingId) {
         // Update existing order
         url = `${API_ENDPOINTS.CASTING_ORDERS}/${editingId}`;
-        method = 'PUT';
+        method = "PUT";
       }
 
       response = await fetch(url, {
         method: method,
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(orderData)
+        body: JSON.stringify(orderData),
       });
 
       if (!response.ok) {
@@ -294,11 +305,11 @@ export default function index() {
       }
 
       const result = await response.json();
-      
+
       if (result.success) {
         // Refresh the casting orders data
         await fetchCastingOrders();
-        
+
         // alert(editingId ? "Order updated successfully!" : "Order created successfully!");
         handleGoBack();
       } else {
@@ -316,8 +327,7 @@ export default function index() {
     if (type === "Client") {
       // Redirect to client creation page or show client creation form
       nav("/dashboard/client-master");
-    }
-    else if (type === "Product") {
+    } else if (type === "Product") {
       // Redirect to product creation page or show product creation form
       nav("/dashboard/products");
     } else if (type === "User") {
@@ -351,19 +361,22 @@ export default function index() {
   const confirmDelete = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${API_ENDPOINTS.CASTING_ORDERS}/${deleteId}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
+      const response = await fetch(
+        `${API_ENDPOINTS.CASTING_ORDERS}/${deleteId}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
         }
-      });
+      );
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
       const result = await response.json();
-      
+
       if (result.success) {
         // Remove from local state
         setData((prev) => prev.filter((item) => item.id !== deleteId));
@@ -467,7 +480,7 @@ export default function index() {
             <span className="sm:hidden">Back</span>
           </button>
           <h2 className="text-lg font-semibold">
-            {editingId ? 'Edit Casting Order' : 'Add New Casting Order'}
+            {editingId ? "Edit Casting Order" : "Add New Casting Order"}
           </h2>
         </div>
 
@@ -595,7 +608,11 @@ export default function index() {
               className="bg-blue-900 text-white px-6 py-2 rounded hover:bg-blue-800 transition flex items-center justify-center gap-2 disabled:opacity-50"
             >
               <Save size={16} />
-              {loading ? "Saving..." : editingId ? "Update Order" : "Save Order"}
+              {loading
+                ? "Saving..."
+                : editingId
+                ? "Update Order"
+                : "Save Order"}
             </button>
             <button
               type="button"
@@ -658,9 +675,9 @@ export default function index() {
               filteredData.map((row) => (
                 <tr key={row.id} className="border-t-[0.5px]">
                   <td className="p-3">{row.id}</td>
-                  <td className="p-3">{row.client || 'N/A'}</td>
-                  <td className="p-3">{row.user || 'N/A'}</td>
-                  <td className="p-3">{row.product || 'N/A'}</td>
+                  <td className="p-3">{row.client || "N/A"}</td>
+                  <td className="p-3">{row.user || "N/A"}</td>
+                  <td className="p-3">{row.product || "N/A"}</td>
                   <td className="p-3">{row.qty}</td>
                   <td className="p-3">{row.size}</td>
                   <td className="p-3">
@@ -740,15 +757,15 @@ export default function index() {
                   <span className="font-medium text-gray-600">
                     Client Name :
                   </span>
-                  <div>{row.client || 'N/A'}</div>
+                  <div>{row.client || "N/A"}</div>
                 </div>
                 <div>
                   <span className="font-medium text-gray-600">User Name :</span>
-                  <div>{row.user || 'N/A'}</div>
+                  <div>{row.user || "N/A"}</div>
                 </div>
                 <div>
                   <span className="font-medium text-gray-600">Product :</span>
-                  <div>{row.product || 'N/A'}</div>
+                  <div>{row.product || "N/A"}</div>
                 </div>
                 <div>
                   <span className="font-medium text-gray-600">Quantity :</span>
@@ -759,7 +776,9 @@ export default function index() {
                   <div>{row.size}</div>
                 </div>
                 <div>
-                  <span className="font-medium text-gray-600">Order Date :</span>
+                  <span className="font-medium text-gray-600">
+                    Order Date :
+                  </span>
                   <div>{row.orderDate}</div>
                 </div>
                 <div className="sm:col-span-2">
