@@ -1,102 +1,95 @@
 import React, { useEffect, useState } from "react";
-import { Plus, Pencil, Trash2, ArrowLeft, Save } from "lucide-react";
+import {
+  Plus,
+  Pencil,
+  Trash2,
+  ArrowLeft,
+  Save,
+  User,
+  SaveAll,
+  X,
+  Edit2,
+  Clock,
+  CheckCircle,
+  AlertCircle,
+} from "lucide-react";
 import API_ENDPOINTS from "../../utils/apiConfig";
 import { useNavigate } from "react-router-dom";
-const sampleData = [
-  // {
-  //   id: 5,
-  //   client: "fortune casting",
-  //   operation: "Tunning",
-  //   assignto: "jasmin bhai",
-  //   product: "LOCK DABI",
-  //   qty: 10,
-  //   price: 0,
-  //   totalprice: 3000,
-  //   status: "pending",
-  // },
-  // {
-  //   id: 4,
-  //   client: "fortune casting",
-  //   operation: "Tunning",
-  //   assignto: "jasmin bhai",
-  //   product: "LOCK DABI",
-  //   qty: 10,
-  //   price: 0,
-  //   totalprice: 3000,
-  //   status: "pending",
-  // },
-  {
-    client: "DEF Industries",
-    id: "ORD001",
-    product: "LCOK DABI",
-    orderDate: "2024-06-07",
-    weight: 50,
-    weightType: "kg",
-    productWeight: 45,
-    productWeightType: "kg",
-    totalQty: 3000,
-    pricePerQty: 0,
-    totalPrice: 3000,
-    description: "High precision valve casting for industrial application",
-    operationType: "admin",
-    assignedUser: "null",
-    status: "in progress",
-  },
-  {
-    client: "DEF Manufacturing",
-    id: "ORD002",
-    product: "s hendal 4",
-    orderDate: "2024-06-08",
-    weight: 50,
-    weightType: "kg",
-    productWeight: 45,
-    productWeightType: "kg",
-    totalQty: 10,
-    pricePerQty: 150,
-    totalPrice: 1500,
-    description: "High precision valve casting for industrial application",
-    operationType: "Tunning",
-    assignedUser: "null",
-    status: "in progress",
-  },
-];
+import { useAuth } from "../login/ProtectedRoute";
 
-// Sample dropdown data (this would come from PHP backend)
-const sampleClients = [
-  { id: 1, name: "ABC Corp" },
-  { id: 2, name: "XYZ Ltd" },
-  { id: 3, name: "DEF Industries" },
-  { id: 4, name: "GHI Manufacturing" },
-];
+// const sampleData = [
+//   {
+//     client: "DEF Industries",
+//     id: "ORD001",
+//     product: "LCOK DABI",
+//     orderDate: "2024-06-07",
+//     weight: 50,
+//     weightType: "kg",
+//     productWeight: 45,
+//     productWeightType: "kg",
+//     totalQty: 3000,
+//     pricePerQty: 0,
+//     totalPrice: 3000,
+//     description: "High precision valve casting for industrial application",
+//     operationType: "admin",
+//     assignedUser: "null",
+//     status: "in progress",
+//   },
+//   {
+//     client: "DEF Manufacturing",
+//     id: "ORD002",
+//     product: "s hendal 4",
+//     orderDate: "2024-06-08",
+//     weight: 50,
+//     weightType: "kg",
+//     productWeight: 45,
+//     productWeightType: "kg",
+//     totalQty: 10,
+//     pricePerQty: 150,
+//     totalPrice: 1500,
+//     description: "High precision valve casting for industrial application",
+//     operationType: "Tunning",
+//     assignedUser: "null",
+//     status: "in progress",
+//   },
+// ];
 
-const sampleProduct = [
-  { id: 1, name: "LCOK DABI" },
-  { id: 2, name: "s hendal 4" },
-];
+// // Sample dropdown data (this would come from PHP backend)
+// const sampleClients = [
+//   { id: 1, name: "ABC Corp" },
+//   { id: 2, name: "XYZ Ltd" },
+//   { id: 3, name: "DEF Industries" },
+//   { id: 4, name: "GHI Manufacturing" },
+// ];
 
-const sampleWeightType = [
-  { id: 1, name: "kg" },
-  { id: 2, name: "gram" },
-];
-const sampleProductWeightType = [
-  { id: 1, name: "kg" },
-  { id: 2, name: "gram" },
-];
-const sampleOperationType = [
-  { id: 1, name: "admin" },
-  { id: 2, name: "GE" },
-  { id: 3, name: "Buff" },
-  { id: 4, name: "Tunning" },
-];
-const sampleAssginedUser = [{ id: 1, name: "null" }];
-// Status utility functions
-const getStatusLabel = (status) => {
-  return status === 1 ? "Completed" : "Processing";
-};
+// const sampleProduct = [
+//   { id: 1, name: "LCOK DABI" },
+//   { id: 2, name: "s hendal 4" },
+// ];
+
+// const sampleWeightType = [
+//   { id: 1, name: "kg" },
+//   { id: 2, name: "gram" },
+// ];
+// const sampleProductWeightType = [
+//   { id: 1, name: "kg" },
+//   { id: 2, name: "gram" },
+// ];
+// const sampleOperationType = [
+//   { id: 1, name: "admin" },
+//   { id: 2, name: "GE" },
+//   { id: 3, name: "Buff" },
+//   { id: 4, name: "Tunning" },
+// ];
+// const sampleAssginedUser = [{ id: 1, name: "null" }];
+// // Status utility functions
+// const getStatusLabel = (status) => {
+//   return status === 1 ? "Completed" : "Processing";
+// };
 
 const getStatusValue = (status) => {
-  if (typeof status === 'string') {
-    return status.toLowerCase() === 'completed' ? 1 : 0;
+  if (typeof status === "string") {
+    return status.toLowerCase() === "completed" ? 1 : 0;
   }
   return status;
 };
@@ -107,7 +100,7 @@ const getStatusIcon = (status) => {
 
 export default function index() {
   const [search, setSearch] = useState("");
-  const [data, setData] = useState(sampleData);
+  const [data, setData] = useState();
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -130,14 +123,12 @@ export default function index() {
   });
 
   // Dropdown data states
-  const [clients, setClients] = useState(sampleClients);
-  const [product, setProduct] = useState(sampleProduct);
+  const [clients, setClients] = useState();
+  const [product, setProduct] = useState();
   const [weightTypes, setWeightTypes] = useState([]);
-  const [productWeightType, setProductWeightType] = useState(
-    sampleProductWeightType
-  );
-  const [operationType, setOperationType] = useState(sampleOperationType);
-  const [assignedTo, setAssignedTo] = useState(sampleAssginedUser);
+  const [productWeightType, setProductWeightType] = useState();
+  const [operationType, setOperationType] = useState();
+  const [assignedTo, setAssignedTo] = useState();
   const [loading, setLoading] = useState(false);
 
   // all filtered users
@@ -145,6 +136,8 @@ export default function index() {
   const [filteredAssignedTo, setFilteredAssignedTo] = useState([]); // Filtered users based on operation
 
   const nav = useNavigate();
+
+  const {user} = useAuth()
 
   // Fetch dropdown data from PHP backend
   useEffect(() => {
@@ -172,9 +165,9 @@ export default function index() {
 
   const fetchOrders = async () => {
     try {
-      const response = await fetch(API_ENDPOINTS.ORDERS);
+      const response = await fetch(`${API_ENDPOINTS.ORDERS}/?userID=${user.userID}&isAdmin=${user.isAdmin}`);
       const result = await response.json();
-
+      // console.log(result.data)
       if (result.outVal === 1) {
         // Transform API data to match UI expectations
         const transformedData = result.data.map((order) => ({
@@ -190,10 +183,10 @@ export default function index() {
           totalQty: order.productQty,
           pricePerQty: order.pricePerQty,
           totalPrice: order.totalPrice,
-          description: order.orderDetails,
+          description: order.description,
           operationType: order.operationName,
           assignedUser: order.assignUser,
-          status: order.status === "1" ? "Completed" : "Processing", 
+          status: order.status,
           // Keep original IDs for editing
           fClientID: order.fClientID,
           fProductID: order.fProductID,
@@ -312,101 +305,55 @@ export default function index() {
     setSearch(e.target.value);
   };
 
-  const filteredData = data.filter((item) =>
-    item.client.toLowerCase().includes(search.toLowerCase())
+  const filteredData = (data || []).filter((item) =>
+    item?.client?.toLowerCase()?.includes(search?.toLowerCase())
   );
 
-  // Fixed status change handler
-  // const handleStatusChange = async (id, newStatus) => {
-  //   setLoading(true);
-  //   try {
-  //     // Find the order to get its details
-  //     const order = data.find((item) => item.id === id);
-  //     if (!order) {
-  //       throw new Error("Order not found");
-  //     }
-
-  //     // Convert status to numeric value for API
-  //     const statusValue = getStatusValue(newStatus);
-
-  //     // Prepare the status update payload
-  //     const statusUpdateData = {
-  //       status: statusValue,
-  //     };
-
-  //     // Call API to update status
-  //     const response = await fetch(`${API_ENDPOINTS.ORDERS}/${id}`, {
-  //       method: "PUT",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //       },
-  //       body: JSON.stringify(statusUpdateData),
-  //     });
-
-  //     if (!response.ok) {
-  //       throw new Error("Failed to update status");
-  //     }
-
-  //     // Update local state with numeric status
-  //     setData((prev) =>
-  //       prev.map((item) => 
-  //         item.id === id ? { ...item, status: statusValue } : item
-  //       )
-  //     );
-
-  //     console.log("Status updated successfully:", { id, status: statusValue });
-  //   } catch (error) {
-  //     console.error("Error updating status:", error);
-  //     alert("Failed to update status. Please try again.");
-  //     // Optionally refresh data from API to ensure consistency
-  //     fetchOrders();
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
   const handleStatusChange = async (id, status) => {
-  setLoading(true);
-  try {
-    // Find the order to get its details
-    const order = data.find((item) => item.id === id);
-    if (!order) {
-      throw new Error("Order not found");
+    console.log(id)
+    setLoading(true);
+    try {
+      // console.log(data)
+      // Find the order to get its details
+      // const order = data.find((item) => item.orderID === id);
+      // console.log(order)
+      // if (!order) {
+      //   throw new Error("Order not found");
+      // }
+
+      // Prepare the status update payload - convert status to API format
+      const statusUpdateData = {
+        status: status === "Completed" ? "1" : "0", // Convert to string format expected by API
+      };
+
+      // Call API to update status
+      const response = await fetch(`${API_ENDPOINTS.ORDERS}/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(statusUpdateData),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update status");
+      }
+
+      // Update local state only if API call succeeds
+      setData((prev) =>
+        prev.map((item) => (item.id === id ? { ...item, status } : item))
+      );
+
+      console.log("Status updated successfully:", { id, status });
+    } catch (error) {
+      console.error("Error updating status:", error);
+      alert("Failed to update status. Please try again.");
+      // Optionally refresh data from API to ensure consistency
+      fetchOrders();
+    } finally {
+      setLoading(false);
     }
-
-    // Prepare the status update payload - convert status to API format
-    const statusUpdateData = {
-      status: status === "Completed" ? "1" : "0", // Convert to string format expected by API
-    };
-
-    // Call API to update status
-    const response = await fetch(`${API_ENDPOINTS.ORDERS}/${id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(statusUpdateData),
-    });
-
-    if (!response.ok) {
-      throw new Error("Failed to update status");
-    }
-
-    // Update local state only if API call succeeds
-    setData((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, status } : item))
-    );
-
-    console.log("Status updated successfully:", { id, status });
-  } catch (error) {
-    console.error("Error updating status:", error);
-    alert("Failed to update status. Please try again.");
-    // Optionally refresh data from API to ensure consistency
-    fetchOrders();
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   const handleAddOrder = () => {
     setShowAddForm(true);
@@ -435,19 +382,19 @@ export default function index() {
 
   const handleFormChange = (e) => {
     const { name, value } = e.target;
-    
+    console.log("value in int ", getStatusValue(value));
     // Handle status field specifically
-    if (name === 'status') {
-      setFormData((prev) => ({
-        ...prev,
-        [name]: getStatusValue(value), // Convert to numeric
-      }));
-    } else {
-      setFormData((prev) => ({
-        ...prev,
-        [name]: value,
-      }));
-    }
+    // if (name === "status") {
+    //   setFormData((prev) => ({
+    //     ...prev,
+    //     [name]: getStatusValue(value), // Convert to numeric
+    //   }));
+    // } else {
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+    // }
   };
 
   const handleFormSubmit = async () => {
@@ -476,8 +423,8 @@ export default function index() {
 
       // Prepare data for PHP API
       const orderData = {
-        client_id: formData.client,
-        product_id: formData.product,
+        fClientID: formData.client,
+        fProductID: formData.product,
         order_date: formData.orderDate,
         weight: formData.weight,
         weightType: formData.weightType,
@@ -488,8 +435,8 @@ export default function index() {
         totalPrice: formData.totalPrice,
         description: formData.description,
         operationType: formData.operationType,
-        assignedUser: formData.assignedUser,
-        status: formData.status === "Completed" ? "1" : "0",// Already numeric
+        fAssignUserID: formData.assignedUser,
+        status: formData.status === "Completed" ? "1" : "0", // Already numeric
       };
 
       if (editingId) {
@@ -570,10 +517,10 @@ export default function index() {
         }
 
         const result = await response.json();
-        
+
         // Create new order for local state
         const newOrder = {
-          id: result.orderId || Date.now(), // Use returned ID or fallback
+          id: result.orderId, // Use returned ID or fallback
           client: selectedClient?.name || "",
           product: selectedProduct?.name || "",
           orderDate: formData.orderDate,
@@ -606,6 +553,7 @@ export default function index() {
       console.error("Error saving order:", error);
       alert("Failed to save order. Please try again.");
     } finally {
+      fetchOrders();
       setLoading(false);
     }
   };
@@ -623,41 +571,139 @@ export default function index() {
   };
 
   // Handle Edit Order
-  const handleEdit = (order) => {
-    console.log("order ", order);
-    // Find the corresponding IDs for the dropdowns
-    const clientId = clients.find((c) => c.name === order.client)?.id || "";
-    const weightTypeId =
-      weightTypes.find((p) => p.id === order.WeightTypeID)?.id || "";
-    const productId = product.find((p) => p.name === order.product)?.id || "";
-    const productWeightTypeId =
-      productWeightType.find((p) => p.id === order.productWeightTypeID)?.id ||
-      "";
-    const operationTypeId =
-      operationType.find((p) => p.name === order.operationType)?.id || "";
-    const assignedToId =
-      assignedTo.find((p) => p.id === order.fAssignUserID)?.id || "";
+  // const handleEdit = async (order) => {
+  //   console.log(order)
+  //   const response = await fetch(
+  //     API_ENDPOINTS.ORDERS + `/history/${order.id ? order.id : order.orderID}`,
+  //     {
+  //       method: "GET",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //     }
+  //   );
+  //   const result = await response.json();
+  //   console.log(result)
+  //   setOrderHistory(result.data);
 
+  //   // Find the corresponding IDs for the dropdowns
+  //   const clientId = clients.find((c) => c.name === order.client)?.id || "";
+  //   console.log(clientId)
+  //   const weightTypeId =
+  //     weightTypes.find((p) => p.id === order.WeightTypeID)?.id || "";
+  //   console.log(weightTypeId)
+
+  //   const productId = product.find((p) => p.name === order.product)?.id || "";
+  //   console.log(productId)
+
+  //   const productWeightTypeId =
+  //     productWeightType.find((p) => p.id === order.productWeightTypeID)?.id ||
+  //     "";
+  //   console.log(productWeightTypeId)
+
+  //     const operationTypeId =
+  //     operationType.find((p) => p.name === order.operationType)?.id || "";
+  //   console.log(operationTypeId)
+
+  //     const assignedToId =
+  //     assignedTo.find((p) => p.id === order.fAssignUserID)?.id || "";
+  //   console.log(assignedToId)
+
+  //   setFormData({
+  //     client: clientId.toString(),
+  //     product: productId.toString(),
+  //     orderDate: new Date(order.orderDate).toISOString().split("T")[0],
+  //     weight: order.weight,
+  //     weightType: weightTypeId.toString(),
+  //     productWeight: order.productWeight,
+  //     productWeightType: productWeightTypeId.toString(),
+  //     totalQty: order.totalQty,
+  //     pricePerQty: order.pricePerQty,
+  //     totalPrice: order.totalPrice,
+  //     description: order.description,
+  //     operationType: operationTypeId.toString(),
+  //     assignedUser: assignedToId.toString(),
+  //     status: order.status, // Keep numeric status
+  //   });
+
+  //   console.log("formdata : ",{
+  //     client: clientId.toString(),
+  //     product: productId.toString(),
+  //     orderDate: new Date(order.orderDate).toISOString().split("T")[0],
+  //     weight: order.weight,
+  //     weightType: weightTypeId.toString(),
+  //     productWeight: order.productWeight,
+  //     productWeightType: productWeightTypeId.toString(),
+  //     totalQty: order.totalQty,
+  //     pricePerQty: order.pricePerQty,
+  //     totalPrice: order.totalPrice,
+  //     description: order.description,
+  //     operationType: operationTypeId.toString(),
+  //     assignedUser: assignedToId.toString(),
+  //     status: order.status, // Keep numeric status
+  //   })
+
+  //   setEditingId(order.id ? order.id : order.orderID);
+  //   setShowAddForm(true);
+  // };
+
+  const handleEdit = async (order) => {
+  const orderID = order.id || order.orderID;
+
+  try {
+    // Get full order details first
+    const orderResponse = await fetch(`${API_ENDPOINTS.ORDERS}/${orderID}`);
+    const fullOrder = await orderResponse.json();
+
+    if (fullOrder.outVal !== 1 || !fullOrder.data) {
+      alert("Full order data not found");
+      return;
+    }
+
+    const o = fullOrder.data;
+
+    // Fetch history too (optional, if needed for side panel)
+    const historyResponse = await fetch(`${API_ENDPOINTS.ORDERS}/history/${orderID}`);
+    const historyResult = await historyResponse.json();
+    if (historyResult.outVal === 1) {
+      setOrderHistory(historyResult.data);
+    }
+
+    // Find matching dropdown IDs
+    const clientId = clients.find((c) => c.name === o.clientName)?.id || "";
+    const productId = product.find((p) => p.name === o.productName)?.id || "";
+    const weightTypeId = weightTypes.find((p) => p.id === o.weightTypeID)?.id || "";
+    const productWeightTypeId = productWeightType.find((p) => p.id === o.productWeightTypeID)?.id || "";
+    const operationTypeId = operationType.find((p) => p.name === o.operationName)?.id || "";
+    const assignedToId = assignedTo.find((p) => p.id === o.fUserAssignID)?.id || "";
+
+    // Set form data with full fields
     setFormData({
       client: clientId.toString(),
       product: productId.toString(),
-      orderDate: new Date(order.orderDate).toISOString().split('T')[0],
-      weight: order.weight,
+      orderDate: new Date(o.orderOnRaw || o.orderOn).toISOString().split("T")[0],
+      weight: o.weight,
       weightType: weightTypeId.toString(),
-      productWeight: order.productWeight,
+      productWeight: o.productWeight,
       productWeightType: productWeightTypeId.toString(),
-      totalQty: order.totalQty,
-      pricePerQty: order.pricePerQty,
-      totalPrice: order.totalPrice,
-      description: order.description,
+      totalQty: o.productQty,
+      pricePerQty: o.pricePerQty,
+      totalPrice: o.totalPrice,
+      description: o.description,
       operationType: operationTypeId.toString(),
       assignedUser: assignedToId.toString(),
-      status: order.status, // Keep numeric status
+      status: (o.status === "Completed" || o.status === 1 || o.status === "1") ? "Completed" : "Processing",
+      // status: o.status === "Completed" || o.status === 1 ? "Completed" : "Processing",
     });
 
-    setEditingId(order.id);
+    setEditingId(orderID);
     setShowAddForm(true);
-  };
+  } catch (error) {
+    console.error("Error fetching order data for editing:", error);
+    alert("Failed to load order for editing.");
+  }
+};
+
 
   // Handle Delete Order
   const handleDelete = (id) => {
@@ -740,7 +786,7 @@ export default function index() {
     const selectedWeightType = weightTypes.find(
       (wt) => wt.id.toString() === formData.weightType
     );
-    const selectedProductWeightType = productWeightType.find(
+    const selectedProductWeightType = productWeightType?.find(
       (pwt) => pwt.id.toString() === formData.productWeightType
     );
 
@@ -777,8 +823,101 @@ export default function index() {
     productWeightType,
   ]);
 
+  //history logic
+  const [orderHistory, setOrderHistory] = useState([]);
+  const [editingHistory, setEditingHistory] = useState({});
+
+  const handleHistorySave = async (index) => {
+    const historyItem = orderHistory[index];
+    const updatedData = editingHistory[index];
+
+    try {
+      // API call to update order history
+      const response = await fetch(`/api/order/${historyItem.orderID}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          status: updatedData.status === "Completed" ? 1 : 0,
+          description: updatedData.description,
+        }),
+      });
+
+      if (response.ok) {
+        setOrderHistory((prev) =>
+          prev.map((item, i) =>
+            i === index
+              ? {
+                  ...item,
+                  status: updatedData.status,
+                  description: updatedData.description,
+                  isEditing: false,
+                }
+              : item
+          )
+        );
+
+        // Clear editing state
+        setEditingHistory((prev) => {
+          const newState = { ...prev };
+          delete newState[index];
+          return newState;
+        });
+      }
+    } catch (error) {
+      console.error("Error updating history:", error);
+    }
+  };
+
+  const handleHistoryCancel = (index) => {
+    setOrderHistory((prev) =>
+      prev.map((item, i) =>
+        i === index ? { ...item, isEditing: false } : item
+      )
+    );
+
+    setEditingHistory((prev) => {
+      const newState = { ...prev };
+      delete newState[index];
+      return newState;
+    });
+  };
+
+  const handleHistoryInputChange = (index, field, value) => {
+    setEditingHistory((prev) => ({
+      ...prev,
+      [index]: {
+        ...prev[index],
+        [field]: value,
+      },
+    }));
+  };
+
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case "Completed":
+        return <CheckCircle className="w-4 h-4 text-green-500" />;
+      case "Processing":
+        return <Clock className="w-4 h-4 text-blue-500" />;
+      default:
+        return <AlertCircle className="w-4 h-4 text-yellow-500" />;
+    }
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "Completed":
+        return "bg-green-100 text-green-800 border-green-300";
+      case "Processing":
+        return "bg-blue-100 text-blue-800 border-blue-300";
+      default:
+        return "bg-yellow-100 text-yellow-800 border-yellow-300";
+    }
+  };
+
   // Custom Dropdown Component with Add Link
-const CustomDropdown = ({
+  const CustomDropdown = ({
     name,
     value,
     onChange,
@@ -791,6 +930,7 @@ const CustomDropdown = ({
         name={name}
         value={value}
         onChange={onChange}
+        disabled={!user.isAdmin ? true : false}
         className="w-full border rounded px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500 appearance-none bg-white"
         required
       >
@@ -813,7 +953,7 @@ const CustomDropdown = ({
       </div>
     </div>
   );
-
+  {formData}
   // Add Order Form Component
   if (showAddForm) {
     return (
@@ -1078,23 +1218,186 @@ const CustomDropdown = ({
                 </p>
               )}
             </div>
-
             {/* Status */}
             <div className="sm:col-span-2 lg:col-span-1">
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Status
               </label>
+              {console.log(formData)}
+              {console.log(formData.status)}
               <select
                 name="status"
                 value={formData.status}
                 onChange={handleFormChange}
+                disabled={!user.isAdmin ? true : false}
                 className="w-full border rounded px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="Processing">Processing</option>
                 <option value="Completed">Completed</option>
               </select>
             </div>
+
+            {/* <div>
+              {console.log(data.product_image)}
+              <img src={data.product_image} alt="" />
+            </div> */}
           </div>
+
+          {/* history  */}
+          <div>
+            <h3 className="font-bold pb-2">Order History</h3>
+            {console.log("order history : ",orderHistory)}
+            {Array.isArray(orderHistory) && orderHistory.length > 0 ? (
+            // {orderHistory.length > 0 ? (
+              orderHistory.map((row) => (
+                <div key={row.orderID} className="border rounded-lg p-4 bg-gray-50 mt-2">
+                  {/* Card Header */}
+                  <div className="flex justify-between items-start mb-3">
+                    <div>
+                      <div className="font-semibold text-sm text-gray-600">
+                        Order ID
+                      </div>
+                      <div className="font-medium">{row.orderID}</div>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleEdit(row)}
+                        className="text-blue-600 hover:bg-blue-50 p-2 rounded cursor-pointer"
+                      >
+                        <Pencil size={16} />
+                      </button>
+                      {/* <button
+                        onClick={() => handleDelete(row.orderID)}
+                        className="text-red-600 hover:bg-red-50 p-2 rounded cursor-pointer"
+                      >
+                        <Trash2 size={16} />
+                      </button> */}
+                    </div>
+                  </div>
+
+                  {/* Card Content - 2 Column Grid */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                    <div>
+                      <span className="font-medium text-gray-600">
+                        Client Name :
+                      </span>
+                      <div>{row.clientName}</div>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600">
+                        Operation Name :
+                      </span>
+                      <div>{row.operationType}</div>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600">
+                        Assign To :
+                      </span>
+                      <div>{row.assignUser}</div>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600">
+                        Description :
+                      </span>
+                      <div>{row.description}</div>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600">
+                        Status :
+                      </span>
+                      <select
+                        value={row.status}
+                        onChange={(e) =>
+                          handleStatusChange(row.orderID, e.target.value)
+                        }
+                        className="border px-2 py-1 rounded text-sm"
+                        disabled={true}
+                      >
+                        <option value="Processing">🔴 Processing</option>
+                        <option value="Completed">🟢 Completed</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center p-8 text-gray-500 border rounded-lg">
+                No matching records found.
+              </div>
+            )}
+          </div>
+
+          {/* {orderHistory.map((item, index) => (
+                  <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
+                    <td className="py-3 px-4 text-sm text-gray-900">{item.orderID}</td>
+                    <td className="py-3 px-4 text-sm text-gray-900">{item.operation}</td>
+                    <td className="py-3 px-4 text-sm text-gray-900 flex items-center gap-2">
+                      <User className="w-4 h-4 text-gray-400" />
+                      {item.assignTo}
+                    </td>
+                    <td className="py-3 px-4 text-sm text-gray-500">
+                      {new Date(item.assignDate).toLocaleString()}
+                    </td>
+                    <td className="py-3 px-4">
+                      {item.isEditing ? (
+                        <select
+                          className="text-sm px-2 py-1 border border-gray-300 rounded"
+                          value={editingHistory[index]?.status || item.status}
+                          onChange={(e) => handleHistoryInputChange(index, 'status', e.target.value)}
+                        >
+                          <option value="Processing">Processing</option>
+                          <option value="Completed">Completed</option>
+                          <option value="Pending">Pending</option>
+                        </select>
+                      ) : (
+                        <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(item.status)}`}>
+                          {getStatusIcon(item.status)}
+                          {item.status}
+                        </span>
+                      )}
+                    </td>
+                    <td className="py-3 px-4 max-w-xs">
+                      {item.isEditing ? (
+                        <textarea
+                          className="w-full text-sm px-2 py-1 border border-gray-300 rounded resize-none"
+                          rows="2"
+                          value={editingHistory[index]?.description || item.description}
+                          onChange={(e) => handleHistoryInputChange(index, 'description', e.target.value)}
+                        />
+                      ) : (
+                        <span className="text-sm text-gray-600">{item.description}</span>
+                      )}
+                    </td>
+                    <td className="py-3 px-4">
+                      {item.isEditing ? (
+                        <div className="flex gap-1">
+                          <button
+                            onClick={() => handleHistorySave(index)}
+                            className="p-1 text-green-600 hover:bg-green-50 rounded"
+                            title="Save"
+                          >
+                            <SaveAll className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleHistoryCancel(index)}
+                            className="p-1 text-red-600 hover:bg-red-50 rounded"
+                            title="Cancel"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => handleHistoryEdit(index)}
+                          className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                          title="Edit"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))} */}
 
           {/* Form Actions */}
           <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t">
@@ -1158,11 +1461,13 @@ const CustomDropdown = ({
               <th className="p-3 font-medium">Product Qty</th>
               <th className="p-3 font-medium">Price</th>
               <th className="p-3 font-medium">Total Price</th>
-              <th className="p-3 font-medium">Status</th>
+              <th className="p-3 font-medium">Description</th>
               <th className="p-3 font-medium">Action</th>
             </tr>
           </thead>
           <tbody>
+            {/* {console.log("data ",data)}
+            {console.log("filtered data ",filteredData)} */}
             {filteredData.length > 0 ? (
               filteredData.map((row) => (
                 <tr key={row.id} className="border-t-[0.5px]">
@@ -1174,7 +1479,8 @@ const CustomDropdown = ({
                   <td className="p-3">{row.totalQty}</td>
                   <td className="p-3">{row.pricePerQty}</td>
                   <td className="p-3">{row.totalPrice}</td>
-                  <td className="p-3">
+                  <td className="p-3">{row.description}</td>
+                  {/* <td className="p-3">
                     <select
                       value={row.status}
                       onChange={(e) =>
@@ -1186,7 +1492,7 @@ const CustomDropdown = ({
                       <option value="Processing">🔴 Processing</option>
                       <option value="Completed">🟢 Completed</option>
                     </select>
-                  </td>
+                  </td> */}
                   <td className="p-3">
                     <div className="flex gap-2">
                       <button
@@ -1197,7 +1503,7 @@ const CustomDropdown = ({
                       </button>
                       <button
                         onClick={() => handleDelete(row.id)}
-                        className="text-red-600 hover:underline cursor-pointer"
+                        className={`text-red-600 hover:underline cursor-pointer ${!user.isAdmin ? "hidden" : ""}`}
                       >
                         <Trash2 size={16} />
                       </button>
@@ -1238,7 +1544,7 @@ const CustomDropdown = ({
                   </button>
                   <button
                     onClick={() => handleDelete(row.id)}
-                    className="text-red-600 hover:bg-red-50 p-2 rounded cursor-pointer"
+                    className={`text-red-600 hover:bg-red-50 p-2 rounded cursor-pointer ${!user.isAdmin ? "hidden" : ""}` }
                   >
                     <Trash2 size={16} />
                   </button>
@@ -1284,8 +1590,14 @@ const CustomDropdown = ({
                   <div>{row.totalPrice}</div>
                 </div>
                 <div>
-                  <span className="font-medium text-gray-600">Status :</span>
-                  <select
+                  <span className="font-medium text-gray-600">
+                    Description :
+                  </span>
+                  <div>{row.description}</div>
+                </div>
+                {/* <div>
+                  <span className="font-medium text-gray-600">Status :</span> */}
+                {/* <select
                     value={row.status}
                     onChange={(e) => handleStatusChange(row.id, e.target.value)}
                     className="border px-2 py-1 rounded text-sm"
@@ -1293,8 +1605,8 @@ const CustomDropdown = ({
                   >
                     <option value="Processing">🔴 Processing</option>
                     <option value="Completed">🟢 Completed</option>
-                  </select>
-                  {/* <select
+                  </select> */}
+                {/* <select
                     value={row.status}
                     onChange={(e) => handleStatusChange(row.id, e.target.value)}
                     className="border px-3 py-1 rounded mt-1 w-full"
@@ -1302,7 +1614,7 @@ const CustomDropdown = ({
                     <option value="pending">🔴 Pending</option>
                     <option value="completed">🟢 Completed</option>
                   </select> */}
-                </div>
+                {/* </div> */}
               </div>
             </div>
           ))
