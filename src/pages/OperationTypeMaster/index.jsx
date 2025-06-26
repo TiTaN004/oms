@@ -84,6 +84,15 @@ export default function index() {
     setLoading(true);
 
     try {
+
+// Validate required fields
+      if (
+        !formData.operationName
+      ) {
+        alert("Please fill in all required fields.");
+        return;
+      }
+
       // Prepare data for PHP API
       const userData = {
         id: formData.id,
@@ -227,7 +236,7 @@ export default function index() {
                 value={formData.operationName}
                 onChange={handleFormChange}
                 className="w-full border rounded px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter size (e.g., 10x20cm)"
+                placeholder="Enter operationName"
                 required
               />
             </div>
@@ -243,7 +252,6 @@ export default function index() {
                 checked={formData.isActive}
                 onChange={handleFormChange}
                 className="w-full border rounded px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter size (e.g., 10x20cm)"
                 required
               />
             </div>

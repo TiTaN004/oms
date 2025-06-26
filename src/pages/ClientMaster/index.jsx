@@ -74,11 +74,21 @@ export default function index() {
       [name]: type === "checkbox" ? checked : value,
     }));
   };
-
+console.log(formData)
   const handleFormSubmit = async () => {
     setLoading(true);
 
     try {
+
+      // Validate required fields
+      if (
+        !formData.clientName
+      ) {
+        alert("Please fill in all required fields.");
+        return;
+      }
+
+
       // Prepare data for PHP API
       const userData = {
         id: formData.id,
@@ -229,7 +239,7 @@ export default function index() {
                 value={formData.clientName}
                 onChange={handleFormChange}
                 className="w-full border rounded px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter size (e.g., 10x20cm)"
+                placeholder="Enter clientName"
                 required
               />
             </div>

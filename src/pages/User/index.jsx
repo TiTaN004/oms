@@ -125,6 +125,20 @@ export default function index() {
     setLoading(true);
 
     try {
+
+      // Validate required fields
+      if (
+        !formData.userID ||
+        !formData.fullName ||
+        !formData.userName ||
+        !formData.mobileNo ||
+        !formData.password ||
+        !formData.operationTypeID ||
+        !formData.emailID
+      ) {
+        alert("Please fill in all required fields.");
+        return;
+      }
       // Get selected names for display
       const selectedUserType = userType.find(
         (c) => c.id.toString() === formData.operationTypeID
@@ -320,7 +334,7 @@ export default function index() {
                 value={formData.fullName}
                 onChange={handleFormChange}
                 className="w-full border rounded px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter size (e.g., 10x20cm)"
+                placeholder="Enter Name"
                 required
               />
             </div>
@@ -336,7 +350,7 @@ export default function index() {
                 value={formData.emailID}
                 onChange={handleFormChange}
                 className="w-full border rounded px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter size (e.g., 10x20cm)"
+                placeholder="Enter Email"
                 required
               />
             </div>
@@ -350,6 +364,7 @@ export default function index() {
                 <input
                   type="text"
                   name="userName"
+                  placeholder="userName"
                   value={formData.userName}
                   onChange={handleFormChange}
                   className="w-full border rounded px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
@@ -369,7 +384,7 @@ export default function index() {
                 value={formData.password}
                 onChange={handleFormChange}
                 className="w-full border rounded px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter size (e.g., 10x20cm)"
+                placeholder="Enter password"
                 required
               />
             </div>
@@ -385,7 +400,7 @@ export default function index() {
                 value={formData.mobileNo}
                 onChange={handleFormChange}
                 className="w-full border rounded px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter size (e.g., 10x20cm)"
+                placeholder="Enter mobileNo No."
                 required
               />
             </div>
@@ -400,7 +415,7 @@ export default function index() {
                 value={formData.operationTypeID}
                 onChange={handleFormChange}
                 options={userType}
-                placeholder="Select User"
+                placeholder="Select UserType"
                 type="operation type"
               />
             </div>

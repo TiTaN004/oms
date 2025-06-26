@@ -37,6 +37,13 @@ export const API_ENDPOINTS = {
   
   // Dashboard
   DASHBOARD_STATS: `${API_BASE_URL}/dashboard-stats.php`,
+  
+  //report
+  REPORT: `${API_BASE_URL}/report/report.php`,
+
+  //report
+  DASHBOARD: `${API_BASE_URL}/report/dashboard.php`,
+
 };
 
 // API utility functions

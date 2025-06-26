@@ -98,7 +98,7 @@ export default function ProductManagement() {
 
     setLoading(true);
 
-    try {
+    try {      
       const formDataToSend = new FormData();
       formDataToSend.append('product_name', formData.productName);
       formDataToSend.append('is_active', formData.isActive ? '1' : '0');

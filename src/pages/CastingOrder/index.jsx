@@ -560,7 +560,7 @@ export default function index() {
                 value={formData.size}
                 onChange={handleFormChange}
                 className="w-full border rounded px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter size (e.g., 10x20cm)"
+                placeholder="Enter size"
                 required
               />
             </div>

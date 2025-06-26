@@ -310,7 +310,7 @@ export default function index() {
   );
 
   const handleStatusChange = async (id, status) => {
-    console.log(id)
+    // console.log(id)
     setLoading(true);
     try {
       // console.log(data)
@@ -344,7 +344,7 @@ export default function index() {
         prev.map((item) => (item.id === id ? { ...item, status } : item))
       );
 
-      console.log("Status updated successfully:", { id, status });
+      // console.log("Status updated successfully:", { id, status });
     } catch (error) {
       console.error("Error updating status:", error);
       alert("Failed to update status. Please try again.");
@@ -382,7 +382,7 @@ export default function index() {
 
   const handleFormChange = (e) => {
     const { name, value } = e.target;
-    console.log("value in int ", getStatusValue(value));
+    // console.log("value in int ", getStatusValue(value));
     // Handle status field specifically
     // if (name === "status") {
     //   setFormData((prev) => ({
@@ -396,11 +396,30 @@ export default function index() {
     }));
     // }
   };
-
   const handleFormSubmit = async () => {
     setLoading(true);
-
+  
     try {
+
+      // Validate required fields
+      if (
+        !formData.assignedUser ||
+        !formData.client ||
+        !formData.operationType ||
+        !formData.orderDate ||
+        !formData.pricePerQty ||
+        !formData.product ||
+        !formData.productWeight ||
+        !formData.productWeightType ||
+        !formData.totalPrice ||
+        !formData.totalQty ||
+        !formData.weight ||
+        !formData.weightType
+      ) {
+        alert("Please fill in all required fields.");
+        return;
+      }
+
       // Get selected names for display
       const selectedClient = clients.find(
         (c) => c.id.toString() === formData.client
@@ -483,7 +502,7 @@ export default function index() {
           prev.map((item) => (item.id === editingId ? updatedOrder : item))
         );
 
-        console.log("Order updated successfully:", orderData);
+        // console.log("Order updated successfully:", orderData);
         setEditingId(null);
       } else {
         // Create new order
@@ -545,7 +564,7 @@ export default function index() {
         };
 
         setData((prev) => [...prev, newOrder]);
-        console.log("Order created successfully:", orderData);
+        // console.log("Order created successfully:", orderData);
       }
 
       handleGoBack();
@@ -726,7 +745,7 @@ export default function index() {
       // Delete locally
       setData((prev) => prev.filter((item) => item.id !== deleteId));
 
-      console.log("Order deleted successfully:", deleteId);
+      // console.log("Order deleted successfully:", deleteId);
     } catch (error) {
       console.error("Error deleting order:", error);
       alert("Failed to delete order. Please try again.");
@@ -1011,6 +1030,7 @@ export default function index() {
               </label>
               <div className="relative">
                 <input
+                disabled={!user.isAdmin ? true : false}
                   type="date"
                   name="orderDate"
                   value={formData.orderDate}
@@ -1029,10 +1049,11 @@ export default function index() {
               <input
                 type="text"
                 name="weight"
+                disabled={!user.isAdmin ? true : false}
                 value={formData.weight}
                 onChange={handleFormChange}
                 className="w-full border rounded px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter size (e.g., 10x20cm)"
+                placeholder="Enter Weight"
                 required
               />
             </div>
@@ -1060,10 +1081,11 @@ export default function index() {
               <input
                 type="text"
                 name="productWeight"
+                disabled={!user.isAdmin ? true : false}
                 value={formData.productWeight}
                 onChange={handleFormChange}
                 className="w-full border rounded px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter quantity"
+                placeholder="Enter Product Weight"
                 required
               />
             </div>
@@ -1125,10 +1147,11 @@ export default function index() {
               <input
                 type="text"
                 name="pricePerQty"
+                disabled={!user.isAdmin ? true : false}
                 value={formData.pricePerQty}
                 onChange={handleFormChange}
                 className="w-full border rounded px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter quantity"
+                placeholder="Enter Price Per Qty"
                 required
               />
             </div>
@@ -1170,7 +1193,7 @@ export default function index() {
             {/* Description */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Description *
+                Remark *
               </label>
               <input
                 type="text"
@@ -1178,7 +1201,7 @@ export default function index() {
                 value={formData.description}
                 onChange={handleFormChange}
                 className="w-full border rounded px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter quantity"
+                placeholder="Enter Remark"
                 required
               />
             </div>
@@ -1193,7 +1216,7 @@ export default function index() {
                 value={formData.operationType}
                 onChange={handleFormChange}
                 options={operationType}
-                placeholder="Select User"
+                placeholder="Select Operation Type"
                 type="operationType"
               />
             </div>
@@ -1209,7 +1232,7 @@ export default function index() {
                 value={formData.assignedUser}
                 onChange={handleFormChange}
                 options={filteredAssignedTo} // Use filtered users instead of assignedTo
-                placeholder="Select User"
+                placeholder="Select Assigned User"
                 type="assignedUser"
               />
               {formData.operationType && filteredAssignedTo.length === 0 && (
@@ -1223,8 +1246,8 @@ export default function index() {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Status
               </label>
-              {console.log(formData)}
-              {console.log(formData.status)}
+              {/* {console.log(formData)}
+              {console.log(formData.status)} */}
               <select
                 name="status"
                 value={formData.status}
@@ -1246,7 +1269,7 @@ export default function index() {
           {/* history  */}
           <div>
             <h3 className="font-bold pb-2">Order History</h3>
-            {console.log("order history : ",orderHistory)}
+            {/* {console.log("order history : ",orderHistory)} */}
             {Array.isArray(orderHistory) && orderHistory.length > 0 ? (
             // {orderHistory.length > 0 ? (
               orderHistory.map((row) => (
