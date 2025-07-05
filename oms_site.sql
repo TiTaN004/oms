@@ -269,10 +269,10 @@ CREATE TABLE `user` (
 --
 
 INSERT INTO `user` (`userID`, `fullName`, `userName`, `emailID`, `mobileNo`, `password`, `token`, `operationTypeID`, `isAdmin`, `isActive`) VALUES
-(1, 'admin', 'admin', 'mananrathod214@gmail.com', '111111111', '1111', 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiIsImp0aSI6MSwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvbmFtZSI6ImFkbWluIiwiVXNlcklkIjoiMSIsImV4cCI6MTc1MTcwMTczMCwiaXNzIjoib3Rwc3lzdGVtIiwiYXVkIjoib3Rwc3lzdGVtIiwiaWF0IjoxNzUxNjk4MTMwfQ.9Dm6-AAN7E6SBCg3VmVyZg2T9KjX95DvsCn_QoWUUu8', 1, 1, 1),
-(3, 'Test', 'test', 'test123@gmail.com', '111111112', '2222', 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0IiwianRpIjozLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoidGVzdCIsIlVzZXJJZCI6IjMiLCJleHAiOjE3NTE3MDI2NDYsImlzcyI6Im90cHN5c3RlbSIsImF1ZCI6Im90cHN5c3RlbSIsImlhdCI6MTc1MTY5OTA0Nn0.EliWwn8i2CDRf9w76YURZ0FJqnqiWovpJxuy3mh2JTk', 2, 0, 1),
-(6, 'testerrrrrr', 'tester', 'mananrathod45@gmail.com', '7043860209', '1', 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0ZXIiLCJqdGkiOjYsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJ0ZXN0ZXIiLCJVc2VySWQiOiI2IiwiZXhwIjoxNzUxMzU5ODA2LCJpc3MiOiJvdHBzeXN0ZW0iLCJhdWQiOiJvdHBzeXN0ZW0iLCJpYXQiOjE3NTEzNTYyMDZ9.4-UrvNgK1egoJK7cB1TMQhi_RvJ1YWTRIX8_o02r_FI', 2, 0, 1),
-(7, 'another user', 'another', 'test@gmail.com', '23423434', '3333', 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhbm90aGVyIiwianRpIjo3LCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiYW5vdGhlciIsIlVzZXJJZCI6IjciLCJleHAiOjE3NTE2OTk5OTAsImlzcyI6Im90cHN5c3RlbSIsImF1ZCI6Im90cHN5c3RlbSIsImlhdCI6MTc1MTY5NjM5MH0.4MB3zET-n2AUesLfF47Ycw5zCCq8iEN964cyX9v-EeI', 7, 0, 1);
+(1, 'admin', 'admin', 'mananrathod214@gmail.com', '111111111', '1111', '', 1, 1, 1),
+(3, 'Test', 'test', 'test123@gmail.com', '111111112', '2222', '', 2, 0, 1),
+(6, 'testerrrrrr', 'tester', 'mananrathod45@gmail.com', '7043860209', '1', '', 2, 0, 1),
+(7, 'another user', 'another', 'test@gmail.com', '23423434', '3333', '', 7, 0, 1);
 
 -- --------------------------------------------------------
 
@@ -294,9 +294,9 @@ CREATE TABLE `user_devices` (
 --
 
 INSERT INTO `user_devices` (`id`, `userID`, `device_token`, `platform`, `is_active`, `updated_at`) VALUES
-(1, 3, 'dlkSdbQkTnCIlxYVpvRlDm:APA91bFpt3vGi5hy3XzV7GBX74Fu0jsDH3dRMIg8GR-SiRuk3I9m9nZWkK51HngtCwdLm1JWTi3M6viMRYYs7HbfdzaRJ69gw7MVfrd1gvNg_ETvRN-pjh0', 'android', 1, '2025-07-05 12:34:08'),
-(2, 1, 'e1EbRuYsTneyQghT7JNVHv:APA91bH6PgM0-FFpFCJeBM7s_DXTXHCv6hsCJJ9WOcreH6qdj5wdbskIGZJ2JIGe7OoTcU_UVyGWEM_N6l-O_q9I8MhTZctutEafFIHkjOIoYsOV0koAT1k', 'android', 1, '2025-07-04 20:07:38'),
-(5, 7, 'fZeYJY70Si-tkQigNaCdei:APA91bGKJYRV5FrrxaHzsnNS3llMHGGPqa7AT-QA-O3YcxZzEFxBUX626ClOVk3L2rMYZXTQbIKJdLr0V7eVzEHSMdq896iUhwZ2wn8TI_nTxtzh3vtYFv4', 'android', 1, '2025-06-30 11:32:35');
+(1, 3, '', 'android', 1, '2025-07-05 12:34:08'),
+(2, 1, '', 'android', 1, '2025-07-04 20:07:38'),
+(5, 7, '', 'android', 1, '2025-06-30 11:32:35');
 
 -- --------------------------------------------------------
 
