@@ -119,7 +119,7 @@ export default function index() {
     description: "",
     operationType: "",
     assignedUser: "",
-    status: 0, // Changed to numeric default
+    status: 0, // Changed to bool
   });
 
   // Dropdown data states
@@ -135,6 +135,7 @@ export default function index() {
   const [allUsers, setAllUsers] = useState([]); // Store all users
   const [filteredAssignedTo, setFilteredAssignedTo] = useState([]); // Filtered users based on operation
 
+  // navigation hook
   const nav = useNavigate();
 
   const {user} = useAuth()
@@ -147,6 +148,7 @@ export default function index() {
   const fetchAllData = async () => {
     setLoading(true);
     try {
+      // Fetch all required data in parallel
       await Promise.all([
         fetchOrders(),
         fetchClients(),
@@ -169,7 +171,7 @@ export default function index() {
       const result = await response.json();
       // console.log(result.data)
       if (result.outVal === 1) {
-        // Transform API data to match UI expectations
+        // match data to the expected format
         const transformedData = result.data.map((order) => ({
           id: order.orderID,
           orderNo: order.orderNo,
@@ -187,7 +189,6 @@ export default function index() {
           operationType: order.operationName,
           assignedUser: order.assignUser,
           status: order.status,
-          // Keep original IDs for editing
           fClientID: order.fClientID,
           fProductID: order.fProductID,
           WeightTypeID: order.weightTypeID,
@@ -310,17 +311,8 @@ export default function index() {
   );
 
   const handleStatusChange = async (id, status) => {
-    // console.log(id)
     setLoading(true);
     try {
-      // console.log(data)
-      // Find the order to get its details
-      // const order = data.find((item) => item.orderID === id);
-      // console.log(order)
-      // if (!order) {
-      //   throw new Error("Order not found");
-      // }
-
       // Prepare the status update payload - convert status to API format
       const statusUpdateData = {
         status: status === "Completed" ? "1" : "0", // Convert to string format expected by API
@@ -382,19 +374,10 @@ export default function index() {
 
   const handleFormChange = (e) => {
     const { name, value } = e.target;
-    // console.log("value in int ", getStatusValue(value));
-    // Handle status field specifically
-    // if (name === "status") {
-    //   setFormData((prev) => ({
-    //     ...prev,
-    //     [name]: getStatusValue(value), // Convert to numeric
-    //   }));
-    // } else {
     setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
-    // }
   };
   const handleFormSubmit = async () => {
     setLoading(true);
@@ -455,7 +438,7 @@ export default function index() {
         description: formData.description,
         operationType: formData.operationType,
         fAssignUserID: formData.assignedUser,
-        status: formData.status === "Completed" ? "1" : "0", // Already numeric
+        status: formData.status === "Completed" ? "1" : "0", // bool
       };
 
       if (editingId) {
@@ -489,7 +472,6 @@ export default function index() {
           operationType: selectedOperationType?.name || "",
           assignedUser: selectedAssignedTo?.name || "",
           status: formData.status === "Completed" ? "1" : "0",
-          // Keep original IDs for editing
           fClientID: selectedClient?.id || "",
           fProductID: selectedProduct?.id || "",
           WeightTypeID: selectedWeightType?.id || "",
@@ -553,8 +535,7 @@ export default function index() {
           description: formData.description,
           operationType: selectedOperationType?.name || "",
           assignedUser: selectedAssignedTo?.name || "",
-          status: formData.status, // Keep numeric
-          // Store IDs for future editing
+          status: formData.status, // Keep bool
           fClientID: selectedClient?.id || "",
           fProductID: selectedProduct?.id || "",
           WeightTypeID: selectedWeightType?.id || "",
@@ -564,7 +545,6 @@ export default function index() {
         };
 
         setData((prev) => [...prev, newOrder]);
-        // console.log("Order created successfully:", orderData);
       }
 
       handleGoBack();
@@ -588,83 +568,6 @@ export default function index() {
       nav("/dashboard/operation-type");
     }
   };
-
-  // Handle Edit Order
-  // const handleEdit = async (order) => {
-  //   console.log(order)
-  //   const response = await fetch(
-  //     API_ENDPOINTS.ORDERS + `/history/${order.id ? order.id : order.orderID}`,
-  //     {
-  //       method: "GET",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //       },
-  //     }
-  //   );
-  //   const result = await response.json();
-  //   console.log(result)
-  //   setOrderHistory(result.data);
-
-  //   // Find the corresponding IDs for the dropdowns
-  //   const clientId = clients.find((c) => c.name === order.client)?.id || "";
-  //   console.log(clientId)
-  //   const weightTypeId =
-  //     weightTypes.find((p) => p.id === order.WeightTypeID)?.id || "";
-  //   console.log(weightTypeId)
-
-  //   const productId = product.find((p) => p.name === order.product)?.id || "";
-  //   console.log(productId)
-
-  //   const productWeightTypeId =
-  //     productWeightType.find((p) => p.id === order.productWeightTypeID)?.id ||
-  //     "";
-  //   console.log(productWeightTypeId)
-
-  //     const operationTypeId =
-  //     operationType.find((p) => p.name === order.operationType)?.id || "";
-  //   console.log(operationTypeId)
-
-  //     const assignedToId =
-  //     assignedTo.find((p) => p.id === order.fAssignUserID)?.id || "";
-  //   console.log(assignedToId)
-
-  //   setFormData({
-  //     client: clientId.toString(),
-  //     product: productId.toString(),
-  //     orderDate: new Date(order.orderDate).toISOString().split("T")[0],
-  //     weight: order.weight,
-  //     weightType: weightTypeId.toString(),
-  //     productWeight: order.productWeight,
-  //     productWeightType: productWeightTypeId.toString(),
-  //     totalQty: order.totalQty,
-  //     pricePerQty: order.pricePerQty,
-  //     totalPrice: order.totalPrice,
-  //     description: order.description,
-  //     operationType: operationTypeId.toString(),
-  //     assignedUser: assignedToId.toString(),
-  //     status: order.status, // Keep numeric status
-  //   });
-
-  //   console.log("formdata : ",{
-  //     client: clientId.toString(),
-  //     product: productId.toString(),
-  //     orderDate: new Date(order.orderDate).toISOString().split("T")[0],
-  //     weight: order.weight,
-  //     weightType: weightTypeId.toString(),
-  //     productWeight: order.productWeight,
-  //     productWeightType: productWeightTypeId.toString(),
-  //     totalQty: order.totalQty,
-  //     pricePerQty: order.pricePerQty,
-  //     totalPrice: order.totalPrice,
-  //     description: order.description,
-  //     operationType: operationTypeId.toString(),
-  //     assignedUser: assignedToId.toString(),
-  //     status: order.status, // Keep numeric status
-  //   })
-
-  //   setEditingId(order.id ? order.id : order.orderID);
-  //   setShowAddForm(true);
-  // };
 
   const handleEdit = async (order) => {
   const orderID = order.id || order.orderID;
@@ -712,7 +615,6 @@ export default function index() {
       operationType: operationTypeId.toString(),
       assignedUser: assignedToId.toString(),
       status: (o.status === "Completed" || o.status === 1 || o.status === "1") ? "Completed" : "Processing",
-      // status: o.status === "Completed" || o.status === 1 ? "Completed" : "Processing",
     });
 
     setEditingId(orderID);
@@ -745,7 +647,6 @@ export default function index() {
       // Delete locally
       setData((prev) => prev.filter((item) => item.id !== deleteId));
 
-      // console.log("Order deleted successfully:", deleteId);
     } catch (error) {
       console.error("Error deleting order:", error);
       alert("Failed to delete order. Please try again.");
@@ -1105,21 +1006,6 @@ export default function index() {
               />
             </div>
 
-            {/* Total Qty */}
-            {/* <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Total Qty *
-              </label>
-              <input
-                type="text"
-                name="totalQty"
-                value={formData.totalQty}
-                onChange={handleFormChange}
-                className="w-full border rounded px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter quantity"
-                required
-              />
-            </div> */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Total Qty *
@@ -1155,22 +1041,6 @@ export default function index() {
                 required
               />
             </div>
-
-            {/* Total Price */}
-            {/* <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Total Price *
-              </label>
-              <input
-                type="text"
-                name="totalPrice"
-                value={formData.totalPrice}
-                onChange={handleFormChange}
-                className="w-full border rounded px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter quantity"
-                required
-              />
-            </div> */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Total Price *
@@ -1350,78 +1220,6 @@ export default function index() {
             )}
           </div>
 
-          {/* {orderHistory.map((item, index) => (
-                  <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
-                    <td className="py-3 px-4 text-sm text-gray-900">{item.orderID}</td>
-                    <td className="py-3 px-4 text-sm text-gray-900">{item.operation}</td>
-                    <td className="py-3 px-4 text-sm text-gray-900 flex items-center gap-2">
-                      <User className="w-4 h-4 text-gray-400" />
-                      {item.assignTo}
-                    </td>
-                    <td className="py-3 px-4 text-sm text-gray-500">
-                      {new Date(item.assignDate).toLocaleString()}
-                    </td>
-                    <td className="py-3 px-4">
-                      {item.isEditing ? (
-                        <select
-                          className="text-sm px-2 py-1 border border-gray-300 rounded"
-                          value={editingHistory[index]?.status || item.status}
-                          onChange={(e) => handleHistoryInputChange(index, 'status', e.target.value)}
-                        >
-                          <option value="Processing">Processing</option>
-                          <option value="Completed">Completed</option>
-                          <option value="Pending">Pending</option>
-                        </select>
-                      ) : (
-                        <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(item.status)}`}>
-                          {getStatusIcon(item.status)}
-                          {item.status}
-                        </span>
-                      )}
-                    </td>
-                    <td className="py-3 px-4 max-w-xs">
-                      {item.isEditing ? (
-                        <textarea
-                          className="w-full text-sm px-2 py-1 border border-gray-300 rounded resize-none"
-                          rows="2"
-                          value={editingHistory[index]?.description || item.description}
-                          onChange={(e) => handleHistoryInputChange(index, 'description', e.target.value)}
-                        />
-                      ) : (
-                        <span className="text-sm text-gray-600">{item.description}</span>
-                      )}
-                    </td>
-                    <td className="py-3 px-4">
-                      {item.isEditing ? (
-                        <div className="flex gap-1">
-                          <button
-                            onClick={() => handleHistorySave(index)}
-                            className="p-1 text-green-600 hover:bg-green-50 rounded"
-                            title="Save"
-                          >
-                            <SaveAll className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => handleHistoryCancel(index)}
-                            className="p-1 text-red-600 hover:bg-red-50 rounded"
-                            title="Cancel"
-                          >
-                            <X className="w-4 h-4" />
-                          </button>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() => handleHistoryEdit(index)}
-                          className="p-1 text-blue-600 hover:bg-blue-50 rounded"
-                          title="Edit"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))} */}
-
           {/* Form Actions */}
           <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t">
             <button
@@ -1494,7 +1292,7 @@ export default function index() {
             {filteredData.length > 0 ? (
               filteredData.map((row) => (
                 <tr key={row.id} className="border-t-[0.5px]">
-                  <td className="p-3">{row.id}</td>
+                  <td className="p-3">{row.orderNo}</td>
                   <td className="p-3">{row.client}</td>
                   <td className="p-3">{row.operationType}</td>
                   <td className="p-3">{row.assignedUser}</td>
@@ -1503,19 +1301,6 @@ export default function index() {
                   <td className="p-3">{row.pricePerQty}</td>
                   <td className="p-3">{row.totalPrice}</td>
                   <td className="p-3">{row.description}</td>
-                  {/* <td className="p-3">
-                    <select
-                      value={row.status}
-                      onChange={(e) =>
-                        handleStatusChange(row.id, e.target.value)
-                      }
-                      className="border px-2 py-1 rounded text-sm"
-                      disabled={loading}
-                    >
-                      <option value="Processing">🔴 Processing</option>
-                      <option value="Completed">🟢 Completed</option>
-                    </select>
-                  </td> */}
                   <td className="p-3">
                     <div className="flex gap-2">
                       <button
@@ -1618,26 +1403,6 @@ export default function index() {
                   </span>
                   <div>{row.description}</div>
                 </div>
-                {/* <div>
-                  <span className="font-medium text-gray-600">Status :</span> */}
-                {/* <select
-                    value={row.status}
-                    onChange={(e) => handleStatusChange(row.id, e.target.value)}
-                    className="border px-2 py-1 rounded text-sm"
-                    disabled={loading}
-                  >
-                    <option value="Processing">🔴 Processing</option>
-                    <option value="Completed">🟢 Completed</option>
-                  </select> */}
-                {/* <select
-                    value={row.status}
-                    onChange={(e) => handleStatusChange(row.id, e.target.value)}
-                    className="border px-3 py-1 rounded mt-1 w-full"
-                  >
-                    <option value="pending">🔴 Pending</option>
-                    <option value="completed">🟢 Completed</option>
-                  </select> */}
-                {/* </div> */}
               </div>
             </div>
           ))

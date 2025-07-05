@@ -145,42 +145,6 @@ export default function ProtectedRoute({ children, adminOnly = false }) {
 // Route Guard Hook for conditional rendering
 export const useRouteGuard = () => {
   const { user } = useAuth();
-  
-  // const canAccess = (route) => {
-  //   if (!user) return false;
-    
-  //   // Define route permissions
-  //   const adminOnlyRoutes = [
-  //     '/dashboard',
-  //     '/dashboard/casting-orders',
-  //     '/dashboard/orders',
-  //     '/dashboard/user',
-  //     '/dashboard/products',
-  //     '/dashboard/client-master',
-  //     '/dashboard/operation-type',
-  //     '/dashboard/report'
-  //   ];
-    
-  //   const userRoutes = [
-  //     '/dashboard',
-  //     '/dashboard/orders',
-  //   ];
-    
-  //   // Admin can access everything
-  //   if (user.isAdmin) return true;
-    
-  //   // Regular users can only access specific routes
-  //   if (userRoutes.some(userRoute => route.startsWith(userRoute))) {
-  //     return true;
-  //   }
-    
-  //   // Check if it's an admin-only route
-  //   if (adminOnlyRoutes.some(adminRoute => route.startsWith(adminRoute))) {
-  //     return false;
-  //   }
-    
-  //   return false;
-  // };
   const canAccess = (route) => {
     if (!user) return false;
     

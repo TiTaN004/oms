@@ -1,7 +1,5 @@
-// src/utils/apiConfig.js
 const API_BASE_URL = "http://localhost/freelancing/oms-api";
 
-// API endpoints
 export const API_ENDPOINTS = {
   LOGIN: `${API_BASE_URL}/auth/login.php`,
   VERIFY_TOKEN: `${API_BASE_URL}/auth/verify-token.php`,
@@ -46,7 +44,7 @@ export const API_ENDPOINTS = {
 
 };
 
-// API utility functions
+// API functions
 export class ApiService {
   static async request(url, options = {}) {
     const token = localStorage.getItem("authToken");
@@ -109,7 +107,7 @@ export class ApiService {
   }
 }
 
-// Response handler utility
+// res function
 export const handleApiResponse = (response) => {
   if (response.statusCode === 200 && response.outVal === 1) {
     return response.data;

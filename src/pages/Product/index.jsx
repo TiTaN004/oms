@@ -2,9 +2,6 @@ import React, { useEffect, useState } from "react";
 import { Plus, Pencil, Trash2, ArrowLeft, Save } from "lucide-react";
 import API_ENDPOINTS from "../../utils/apiConfig";
 
-// API base URL - adjust according to your setup
-const API_BASE_URL = 'http://localhost/api';
-
 export default function ProductManagement() {
   const [search, setSearch] = useState("");
   const [data, setData] = useState([]);

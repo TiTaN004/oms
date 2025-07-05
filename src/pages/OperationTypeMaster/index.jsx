@@ -1,21 +1,21 @@
 import React, { useEffect, useState } from "react";
 import { Plus, Pencil, Trash2, ArrowLeft, Save } from "lucide-react";
 import API_ENDPOINTS from "../../utils/apiConfig";
-const sampleData = [
-  {
-    id: 5,
-    operationName: "fortune casting",
-    isActive: true,
-  },
-  {
-    id: 6,
-    operationName: "fortune casting",
-    isActive: true,
-  },
-];
+// const sampleData = [
+//   {
+//     id: 5,
+//     operationName: "fortune casting",
+//     isActive: true,
+//   },
+//   {
+//     id: 6,
+//     operationName: "fortune casting",
+//     isActive: true,
+//   },
+// ];
 export default function index() {
   const [search, setSearch] = useState("");
-  const [data, setData] = useState(sampleData);
+  const [data, setData] = useState([]);
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -26,12 +26,6 @@ export default function index() {
     isActive: "",
   });
   const [loading, setLoading] = useState(true);
-
-  const handleStatusChange = (id, status) => {
-    setData((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, status } : item))
-    );
-  };
 
   // Fetch dropdown data from PHP backend
   useEffect(() => {
@@ -46,9 +40,9 @@ export default function index() {
           "Content-Type": "application/json",
         },
       });
-       const result = await response.json(); // ⬅️ You need to parse the response
+       const result = await response.json();
 
-      console.log("data ", result);
+      // console.log("data ", result);
       setData(result.data)
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -142,12 +136,6 @@ export default function index() {
     }
   };
 
-  // const handleAddNewItem = (type) => {
-  //   // This would open a modal or navigate to add new client/user/product
-  //   alert(`Add new ${type} functionality would be implemented here`);
-  //   // Example: window.open(`/add-${type}`, '_blank');
-  // };
-
   // Handle Edit Order
   const handleEdit = (user) => {
     setFormData({
@@ -162,7 +150,7 @@ export default function index() {
 
   // Handle Delete Order
   const handleDelete = (id) => {
-    console.log("clicked");
+    // console.log("clicked");
     setDeleteId(id);
     setShowDeleteConfirm(true);
   };

@@ -2,38 +2,38 @@ import React, { useEffect, useState } from "react";
 import { Plus, Pencil, Trash2, ArrowLeft, Save } from "lucide-react";
 import API_ENDPOINTS from "../../utils/apiConfig";
 import { useNavigate } from "react-router-dom";
-const sampleData = [
-  {
-    userID: 5,
-    name: "fortune casting",
-    userName: "Tunning",
-    mobileNo: "jasmin bhai",
-    password: "LOCK DABI",
-    Email: "t2@gmail.com",
-    UserType: "GE",
-  },
-  {
-    userID: 8,
-    name: "fortune casting",
-    userName: "Tunning",
-    mobileNo: "jasmin bhai",
-    password: "LOCK DABI",
-    Email: "t@gmail.com",
-    UserType: "Admin",
-  },
-];
+// const sampleData = [
+//   {
+//     userID: 5,
+//     name: "fortune casting",
+//     userName: "Tunning",
+//     mobileNo: "jasmin bhai",
+//     password: "LOCK DABI",
+//     Email: "t2@gmail.com",
+//     UserType: "GE",
+//   },
+//   {
+//     userID: 8,
+//     name: "fortune casting",
+//     userName: "Tunning",
+//     mobileNo: "jasmin bhai",
+//     password: "LOCK DABI",
+//     Email: "t@gmail.com",
+//     UserType: "Admin",
+//   },
+// ];
 
 // Sample dropdown data (this would come from PHP backend)
-const sampleUserType = [
-  { id: 1, name: "Admin" },
-  { id: 2, name: "GE" },
-  { id: 3, name: "Buff" },
-  { id: 4, name: "Tunning" },
-];
+// const sampleUserType = [
+//   { id: 1, name: "Admin" },
+//   { id: 2, name: "GE" },
+//   { id: 3, name: "Buff" },
+//   { id: 4, name: "Tunning" },
+// ];
 
 export default function index() {
   const [search, setSearch] = useState("");
-  const [data, setData] = useState(sampleData);
+  const [data, setData] = useState([]);
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);

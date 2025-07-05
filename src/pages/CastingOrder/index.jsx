@@ -4,6 +4,7 @@ import API_ENDPOINTS from "../../utils/apiConfig";
 import { useNavigate } from "react-router-dom";
 
 export default function index() {
+  // state variables
   const [search, setSearch] = useState("");
   const [data, setData] = useState([]);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -27,6 +28,7 @@ export default function index() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  // Navigation hook
   const nav = useNavigate();
 
   // Fetch all data on component mount
@@ -38,6 +40,7 @@ export default function index() {
     setLoading(true);
     setError(null);
     try {
+      // Fetch all required data in parallel
       await Promise.all([
         fetchCastingOrders(),
         fetchClients(),

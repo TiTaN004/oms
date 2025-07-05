@@ -74,7 +74,7 @@ export default function index() {
       [name]: type === "checkbox" ? checked : value,
     }));
   };
-console.log(formData)
+// console.log(formData)
   const handleFormSubmit = async () => {
     setLoading(true);
 
