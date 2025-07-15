@@ -1336,7 +1336,7 @@ export default function index() {
         </div>
       </div>
 
-      <div className="hidden lg:block overflow-auto h-screen">
+      <div className="hidden lg:block overflow-y-auto">
         {console.log("data",data.length, pagination.hasMore)}
         <InfiniteScroll
           dataLength={data.length}
@@ -1420,8 +1420,6 @@ export default function index() {
       </div>
 
       {/* Mobile/Tablet Card View */}
-      <div className="lg:hidden space-y-4">
-        {console.log("data",data.length, pagination.hasMore)}
         <InfiniteScroll
           dataLength={data.length}
           next={loadMoreOrders}
@@ -1441,6 +1439,8 @@ export default function index() {
           }
           scrollThreshold={0.95}
         >
+      <div className="lg:hidden space-y-4">
+        {console.log("data",data.length, pagination.hasMore)}
           {filteredData.length > 0 ? (
             filteredData.map((row) => (
               <div key={row.id} className="border rounded-lg p-4 bg-gray-50">
@@ -1524,8 +1524,8 @@ export default function index() {
               No matching records found.
             </div>
           )}
-        </InfiniteScroll>
       </div>
+        </InfiniteScroll>
 
       <div className="mt-4 text-sm text-gray-500 text-center">
         © {new Date().getFullYear()}, All Rights Reserved
