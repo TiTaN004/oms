@@ -31,7 +31,7 @@ const getStatusIcon = (status) => {
 
 export default function index() {
   const [search, setSearch] = useState("");
-  const [data, setData] = useState();
+  const [data, setData] = useState([]);
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -250,6 +250,7 @@ export default function index() {
   const loadMoreOrders = () => {
     console.log("load more called", pagination);
     if (pagination.hasMore && !isLoadingMore) {
+      console.log(pagination.pageIndex + 1)
       fetchOrders(pagination.pageIndex + 1, true);
     }
   };
@@ -335,6 +336,7 @@ export default function index() {
 
   // effect for operationType and allUsers to filter assigned users
   useEffect(() => {
+    console.log(data)
     if (formData.operationType && allUsers.length > 0) {
       // Filter users based on selected operation type
       const filtered = allUsers.filter(
@@ -1407,9 +1409,10 @@ export default function index() {
         </div>
       </div>
 
-      <div className="hidden lg:block overflow-auto">
+      <div className="hidden lg:block overflow-auto h-screen">
+        {console.log("data",data.length, pagination.hasMore)}
         <InfiniteScroll
-          dataLength={filteredData.length}
+          dataLength={data.length}
           next={loadMoreOrders}
           hasMore={pagination.hasMore}
           loader={
@@ -1491,8 +1494,9 @@ export default function index() {
 
       {/* Mobile/Tablet Card View */}
       <div className="lg:hidden space-y-4">
+        {console.log("data",data.length, pagination.hasMore)}
         <InfiniteScroll
-          dataLength={filteredData.length}
+          dataLength={data.length}
           next={loadMoreOrders}
           hasMore={pagination.hasMore}
           loader={
