@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   Plus,
   Pencil,
@@ -70,11 +70,11 @@ export default function index() {
   // pagination
   const [pagination, setPagination] = useState({
     pageIndex: 0,
-    pageSize: 10,
+    pageSize: 20,
     totalCount: 0,
     hasMore: true,
   });
-  
+
   const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   // navigation hook
@@ -85,6 +85,7 @@ export default function index() {
   // Fetch dropdown data from PHP backend
   useEffect(() => {
     fetchAllData();
+    loadMoreOrders();
   }, []);
 
   const fetchAllData = async () => {
@@ -155,6 +156,14 @@ export default function index() {
         }
 
         // Update pagination info
+        // setPagination((prev) => ({
+        //   ...prev,
+        //   pageIndex: result.pagination.pageIndex,
+        //   pageSize: result.pagination.pageSize,
+        //   totalCount: result.pagination.totalCount,
+        //   hasMore: result.pagination.hasMore,
+        // }));
+
         setPagination((prev) => ({
           ...prev,
           pageIndex: result.pagination.pageIndex,
@@ -174,13 +183,28 @@ export default function index() {
     }
   };
 
-  const loadMoreOrders = () => {
-    console.log("load more called", pagination);
-    if (pagination.hasMore && !isLoadingMore) {
-      console.log(pagination.pageIndex + 1)
-      fetchOrders(pagination.pageIndex + 1, true);
-    }
-  };
+  // const loadMoreOrders = () => {
+  //   console.log("load more called", pagination);
+  //   if (pagination.hasMore && !isLoadingMore) {
+  //     console.log(pagination.pageIndex + 1)
+  //     fetchOrders(pagination.pageIndex + 1, true);
+  //   }
+  // };
+
+  const loadMoreOrders = useCallback(() => {
+    if (isLoadingMore || !pagination.hasMore) return;
+
+    console.log("Loading more orders...", {
+      currentPage: pagination.pageIndex,
+      hasMore: pagination.hasMore,
+      isLoading: isLoadingMore,
+    });
+
+    setIsLoadingMore(true);
+    fetchOrders(pagination.pageIndex + 1, true).finally(() =>
+      setIsLoadingMore(false)
+    );
+  }, [pagination.pageIndex, pagination.hasMore, isLoadingMore]);
 
   // Update the useEffect that calls fetchOrders
   useEffect(() => {
@@ -263,7 +287,7 @@ export default function index() {
 
   // effect for operationType and allUsers to filter assigned users
   useEffect(() => {
-    console.log(data)
+    console.log(data);
     if (formData.operationType && allUsers.length > 0) {
       // Filter users based on selected operation type
       const filtered = allUsers.filter(
@@ -1336,27 +1360,58 @@ export default function index() {
         </div>
       </div>
 
-      <div className="hidden lg:block overflow-y-auto">
-        {console.log("data",data.length, pagination.hasMore)}
-        <InfiniteScroll
-          dataLength={data.length}
-          next={loadMoreOrders}
-          hasMore={pagination.hasMore}
-          loader={
-            <div className="text-center py-4">
-              <div className="inline-flex items-center gap-2">
-                <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                <span className="text-gray-600">Loading more orders...</span>
-              </div>
+      {/* <button onClick={loadMoreOrders}>
+        load more
+      </button> */}
+
+      {/* <InfiniteScroll
+        dataLength={filteredData.length}
+        next={loadMoreOrders}
+        hasMore={pagination.hasMore}
+        loader={
+          <div className="text-center py-4">
+            <div className="inline-flex items-center gap-2">
+              <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+              <span className="text-gray-600">Loading more orders...</span>
             </div>
-          }
-          endMessage={
-            <div className="text-center py-4 text-gray-500">
-              <p>No more orders to load</p>
+          </div>
+        }
+        endMessage={
+          <div className="text-center py-4 text-gray-500">
+            <p>No more orders to load</p>
+          </div>
+        }
+        scrollableTarget="scrollableDiv"
+        scrollThreshold={0.8} // Increased from 0.
+      > */}
+      <InfiniteScroll
+        dataLength={filteredData.length}
+        next={loadMoreOrders}
+        hasMore={pagination.hasMore}
+        loader={
+          <div className="text-center py-4">
+            <div className="inline-flex items-center gap-2">
+              <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+              <span className="text-gray-600">Loading more orders...</span>
             </div>
-          }
-          scrollThreshold={0.95}
+          </div>
+        }
+        endMessage={
+          <div className="text-center py-4 text-gray-500">
+            <p>No more orders to load</p>
+          </div>
+        }
+        scrollableTarget="scrollableDiv"
+        scrollThreshold={0.5} // Increased threshold to trigger load earlier
+        style={{ overflow: "hidden" }} // Prevent double scrollbars
+      >
+        <div
+          id="scrollableDiv"
+          className="hidden lg:block overflow-y-auto"
+          style={{ height: "70vh " }} // Increased from 200px to account for more UI elements
         >
+          {/* {console.log(data.length)}
+        {console.log("data",filteredData.length, pagination.hasMore)} */}
           <table className="min-w-full table-auto border-collapse">
             <thead>
               <tr className="bg-gray-100 text-left ">
@@ -1416,11 +1471,11 @@ export default function index() {
               )}
             </tbody>
           </table>
-        </InfiniteScroll>
-      </div>
+        </div>
+      {/* </InfiniteScroll> */}
 
       {/* Mobile/Tablet Card View */}
-        <InfiniteScroll
+      {/* <InfiniteScroll
           dataLength={data.length}
           next={loadMoreOrders}
           hasMore={pagination.hasMore}
@@ -1438,94 +1493,92 @@ export default function index() {
             </div>
           }
           scrollThreshold={0.95}
-        >
+        > */}
       <div className="lg:hidden space-y-4">
-        {console.log("data",data.length, pagination.hasMore)}
-          {filteredData.length > 0 ? (
-            filteredData.map((row) => (
-              <div key={row.id} className="border rounded-lg p-4 bg-gray-50">
-                {/* Card Header */}
-                <div className="flex justify-between items-start mb-3">
-                  <div>
-                    <div className="font-semibold text-sm text-gray-600">
-                      Order ID
-                    </div>
-                    <div className="font-medium">{row.orderNo}</div>
+        {/* {console.log("data",data.length, pagination.hasMore)} */}
+        {filteredData.length > 0 ? (
+          filteredData.map((row) => (
+            <div key={row.id} className="border rounded-lg p-4 bg-gray-50">
+              {/* Card Header */}
+              <div className="flex justify-between items-start mb-3">
+                <div>
+                  <div className="font-semibold text-sm text-gray-600">
+                    Order ID
                   </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => handleEdit(row)}
-                      className="text-blue-600 hover:bg-blue-50 p-2 rounded cursor-pointer"
-                    >
-                      <Pencil size={16} />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(row.id)}
-                      className={`text-red-600 hover:bg-red-50 p-2 rounded cursor-pointer ${
-                        !user.isAdmin ? "hidden" : ""
-                      }`}
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
+                  <div className="font-medium">{row.orderNo}</div>
                 </div>
-
-                {/* Card Content - 2 Column Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                  <div>
-                    <span className="font-medium text-gray-600">
-                      Client Name :
-                    </span>
-                    <div>{row.client}</div>
-                  </div>
-                  <div>
-                    <span className="font-medium text-gray-600">
-                      Operation Name :
-                    </span>
-                    <div>{row.operationType}</div>
-                  </div>
-                  <div>
-                    <span className="font-medium text-gray-600">
-                      Assign To :
-                    </span>
-                    <div>{row.assignedUser}</div>
-                  </div>
-                  <div>
-                    <span className="font-medium text-gray-600">Product :</span>
-                    <div>{row.product}</div>
-                  </div>
-                  <div>
-                    <span className="font-medium text-gray-600">
-                      Product Qty :
-                    </span>
-                    <div>{row.totalQty}</div>
-                  </div>
-                  <div>
-                    <span className="font-medium text-gray-600">Price :</span>
-                    <div>{row.pricePerQty}</div>
-                  </div>
-                  <div>
-                    <span className="font-medium text-gray-600">
-                      Total Price :
-                    </span>
-                    <div>{row.totalPrice}</div>
-                  </div>
-                  <div>
-                    <span className="font-medium text-gray-600">
-                      Description :
-                    </span>
-                    <div>{row.description}</div>
-                  </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleEdit(row)}
+                    className="text-blue-600 hover:bg-blue-50 p-2 rounded cursor-pointer"
+                  >
+                    <Pencil size={16} />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(row.id)}
+                    className={`text-red-600 hover:bg-red-50 p-2 rounded cursor-pointer ${
+                      !user.isAdmin ? "hidden" : ""
+                    }`}
+                  >
+                    <Trash2 size={16} />
+                  </button>
                 </div>
               </div>
-            ))
-          ) : (
-            <div className="text-center p-8 text-gray-500 border rounded-lg">
-              No matching records found.
+
+              {/* Card Content - 2 Column Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                <div>
+                  <span className="font-medium text-gray-600">
+                    Client Name :
+                  </span>
+                  <div>{row.client}</div>
+                </div>
+                <div>
+                  <span className="font-medium text-gray-600">
+                    Operation Name :
+                  </span>
+                  <div>{row.operationType}</div>
+                </div>
+                <div>
+                  <span className="font-medium text-gray-600">Assign To :</span>
+                  <div>{row.assignedUser}</div>
+                </div>
+                <div>
+                  <span className="font-medium text-gray-600">Product :</span>
+                  <div>{row.product}</div>
+                </div>
+                <div>
+                  <span className="font-medium text-gray-600">
+                    Product Qty :
+                  </span>
+                  <div>{row.totalQty}</div>
+                </div>
+                <div>
+                  <span className="font-medium text-gray-600">Price :</span>
+                  <div>{row.pricePerQty}</div>
+                </div>
+                <div>
+                  <span className="font-medium text-gray-600">
+                    Total Price :
+                  </span>
+                  <div>{row.totalPrice}</div>
+                </div>
+                <div>
+                  <span className="font-medium text-gray-600">
+                    Description :
+                  </span>
+                  <div>{row.description}</div>
+                </div>
+              </div>
             </div>
-          )}
+          ))
+        ) : (
+          <div className="text-center p-8 text-gray-500 border rounded-lg">
+            No matching records found.
+          </div>
+        )}
       </div>
-        </InfiniteScroll>
+      </InfiniteScroll>
 
       <div className="mt-4 text-sm text-gray-500 text-center">
         © {new Date().getFullYear()}, All Rights Reserved
