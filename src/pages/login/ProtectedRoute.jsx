@@ -151,11 +151,22 @@ export const useRouteGuard = () => {
     // Admin can access everything
     if (user.isAdmin) return true;
     
+    let userAccessibleRoutes = []
+
     // Define routes that regular users can access
-    const userAccessibleRoutes = [
-      '/dashboard',           // Dashboard home
-      '/dashboard/orders',    // Orders page only
-    ];
+    if(user.operationTypeID == 2){
+       userAccessibleRoutes = [
+        '/dashboard',           // Dashboard home
+        '/dashboard/orders',
+        '/dashboard/casting-orders'    // Orders page only
+      ];
+    }else{
+       userAccessibleRoutes = [
+        '/dashboard',           // Dashboard home
+        '/dashboard/orders',    // Orders page only
+      ];
+
+    }
     
     // Check if regular user can access this specific route
     return userAccessibleRoutes.includes(route);

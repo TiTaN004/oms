@@ -16,6 +16,7 @@ import {
 import API_ENDPOINTS from "../../utils/apiConfig";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../login/ProtectedRoute";
+import InfiniteScroll from "react-infinite-scroll-component";
 
 // const sampleData = [
 //   {
@@ -134,74 +135,190 @@ export default function index() {
   // all filtered users
   const [allUsers, setAllUsers] = useState([]); // Store all users
   const [filteredAssignedTo, setFilteredAssignedTo] = useState([]); // Filtered users based on operation
+  const [activeFilter, setActiveFilter] = useState("All");
+
+  // pagination
+  const [pagination, setPagination] = useState({
+    pageIndex: 0,
+    pageSize: 10,
+    totalCount: 0,
+    hasMore: true,
+  });
+  const [allOrders, setAllOrders] = useState([]); // Store all loaded orders
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   // navigation hook
   const nav = useNavigate();
 
-  const {user} = useAuth()
+  const { user } = useAuth();
 
   // Fetch dropdown data from PHP backend
   useEffect(() => {
     fetchAllData();
   }, []);
 
-  const fetchAllData = async () => {
-    setLoading(true);
-    try {
-      // Fetch all required data in parallel
-      await Promise.all([
-        fetchOrders(),
-        fetchClients(),
-        fetchProducts(),
-        fetchWeightTypes(),
-        fetchOperationTypes(),
-        fetchUsers(),
-      ]);
-    } catch (error) {
-      console.error("Error fetching data:", error);
-      alert("Failed to fetch data. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  // const fetchAllData = async () => {
+  //   setLoading(true);
+  //   try {
+  //     // Fetch all required data in parallel
+  //     await Promise.all([
+  //       fetchOrders(),
+  //       fetchClients(),
+  //       fetchProducts(),
+  //       fetchWeightTypes(),
+  //       fetchOperationTypes(),
+  //       fetchUsers(),
+  //     ]);
+  //   } catch (error) {
+  //     console.error("Error fetching data:", error);
+  //     alert("Failed to fetch data. Please try again.");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
-  const fetchOrders = async () => {
-    try {
-      const response = await fetch(`${API_ENDPOINTS.ORDERS}/?userID=${user.userID}&isAdmin=${user.isAdmin}`);
-      const result = await response.json();
-      // console.log(result.data)
-      if (result.outVal === 1) {
-        // match data to the expected format
-        const transformedData = result.data.map((order) => ({
-          id: order.orderID,
-          orderNo: order.orderNo,
-          client: order.clientName,
-          product: order.productName,
-          orderDate: order.orderOn,
-          weight: order.weight,
-          weightType: order.weightTypeText,
-          productWeight: order.productWeight,
-          productWeightType: order.productWeightText,
-          totalQty: order.productQty,
-          pricePerQty: order.pricePerQty,
-          totalPrice: order.totalPrice,
-          description: order.description,
-          operationType: order.operationName,
-          assignedUser: order.assignUser,
-          status: order.status,
-          fClientID: order.fClientID,
-          fProductID: order.fProductID,
-          WeightTypeID: order.weightTypeID,
-          productWeightTypeID: order.productWeightTypeID,
-          fOperationID: order.fOperationID,
-          fAssignUserID: order.fUserAssignID,
-        }));
+  const fetchAllData = async () => {
+  setLoading(true);
+  try {
+    // Fetch all required data in parallel
+    await Promise.all([
+      fetchOrders(0, false), // Reset to first page
+      fetchClients(),
+      fetchProducts(),
+      fetchWeightTypes(),
+      fetchOperationTypes(),
+      fetchUsers(),
+    ]);
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    alert("Failed to fetch data. Please try again.");
+  } finally {
+    setLoading(false);
+  }
+};
+
+  // const fetchOrders = async () => {
+  //   try {
+  //     const response = await fetch(
+  //       `${API_ENDPOINTS.ORDERS}/?userID=${user.userID}&isAdmin=${user.isAdmin}`
+  //     );
+  //     const result = await response.json();
+  //     // console.log(result.data)
+  //     if (result.outVal === 1) {
+  //       // match data to the expected format
+  //       const transformedData = result.data.map((order) => ({
+  //         id: order.orderID,
+  //         orderNo: order.orderNo,
+  //         client: order.clientName,
+  //         product: order.productName,
+  //         orderDate: order.orderOn,
+  //         weight: order.weight,
+  //         weightType: order.weightTypeText,
+  //         productWeight: order.productWeight,
+  //         productWeightType: order.productWeightText,
+  //         totalQty: order.productQty,
+  //         pricePerQty: order.pricePerQty,
+  //         totalPrice: order.totalPrice,
+  //         description: order.description,
+  //         operationType: order.operationName,
+  //         assignedUser: order.assignUser,
+  //         status: order.status,
+  //         fClientID: order.fClientID,
+  //         fProductID: order.fProductID,
+  //         WeightTypeID: order.weightTypeID,
+  //         productWeightTypeID: order.productWeightTypeID,
+  //         fOperationID: order.fOperationID,
+  //         fAssignUserID: order.fUserAssignID,
+  //       }));
+  //       setData(transformedData);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error fetching orders:", error);
+  //   }
+  // };
+
+  const fetchOrders = async (pageIndex = 0, isLoadMore = false) => {
+  try {
+    if (!isLoadMore) {
+      setLoading(true);
+    } else {
+      setIsLoadingMore(true);
+    }
+
+    const response = await fetch(
+      `${API_ENDPOINTS.ORDERS}/?userID=${user.userID}&isAdmin=${user.isAdmin}&pageIndex=${pageIndex}&pageSize=${pagination.pageSize}`
+    );
+    const result = await response.json();
+
+    if (result.outVal === 1) {
+      // Transform data to expected format
+      const transformedData = result.data.map((order) => ({
+        id: order.orderID,
+        orderNo: order.orderNo,
+        client: order.clientName,
+        product: order.productName,
+        orderDate: order.orderOn,
+        weight: order.weight,
+        weightType: order.weightTypeText,
+        productWeight: order.productWeight,
+        productWeightType: order.productWeightText,
+        totalQty: order.productQty,
+        pricePerQty: order.pricePerQty,
+        totalPrice: order.totalPrice,
+        description: order.description,
+        operationType: order.operationName,
+        assignedUser: order.assignUser,
+        status: order.status,
+        fClientID: order.fClientID,
+        fProductID: order.fProductID,
+        WeightTypeID: order.weightTypeID,
+        productWeightTypeID: order.productWeightTypeID,
+        fOperationID: order.fOperationID,
+        fAssignUserID: order.fUserAssignID,
+      }));
+
+      if (isLoadMore) {
+        // Append new data to existing data
+        setAllOrders(prev => [...prev, ...transformedData]);
+      } else {
+        // Replace data for initial load
+        setAllOrders(transformedData);
+      }
+
+      // Update pagination info
+      setPagination(prev => ({
+        ...prev,
+        pageIndex: result.pagination.pageIndex,
+        pageSize: result.pagination.pageSize,
+        totalCount: result.pagination.totalCount,
+        hasMore: result.pagination.hasMore
+      }));
+
+      // Update the main data state for compatibility with existing code
+      if (isLoadMore) {
+        setData(prev => [...prev, ...transformedData]);
+      } else {
         setData(transformedData);
       }
-    } catch (error) {
-      console.error("Error fetching orders:", error);
     }
-  };
+  } catch (error) {
+    console.error("Error fetching orders:", error);
+  } finally {
+    setLoading(false);
+    setIsLoadingMore(false);
+  }
+};
+
+const loadMoreOrders = () => {
+  if (pagination.hasMore && !isLoadingMore) {
+    fetchOrders(pagination.pageIndex + 1, true);
+  }
+};
+
+// Update the useEffect that calls fetchOrders
+useEffect(() => {
+  fetchAllData();
+}, []);
 
   const fetchClients = async () => {
     try {
@@ -306,9 +423,28 @@ export default function index() {
     setSearch(e.target.value);
   };
 
-  const filteredData = (data || []).filter((item) =>
-    item?.client?.toLowerCase()?.includes(search?.toLowerCase())
-  );
+  // const filteredData = (data || []).filter((item) =>
+  //   item?.client?.toLowerCase()?.includes(search?.toLowerCase())
+  // );
+
+  const filteredData = (allOrders || []).filter((item) => {
+    // First filter by search term
+    const matchesSearch =
+      item?.client?.toLowerCase()?.includes(search?.toLowerCase()) ||
+      item?.orderNo?.toLowerCase().includes(search.toLowerCase()) ||
+      item?.clientName?.toLowerCase().includes(search.toLowerCase());
+
+    // Then filter by status
+    let matchesStatus = true;
+    if (activeFilter === "Processing") {
+      matchesStatus = item?.status?.toLowerCase() === "processing";
+    } else if (activeFilter === "Completed") {
+      matchesStatus = item?.status?.toLowerCase() === "completed";
+    }
+    // For 'All', matchesStatus remains true
+
+    return matchesSearch && matchesStatus;
+  });
 
   const handleStatusChange = async (id, status) => {
     setLoading(true);
@@ -381,9 +517,8 @@ export default function index() {
   };
   const handleFormSubmit = async () => {
     setLoading(true);
-  
-    try {
 
+    try {
       // Validate required fields
       if (
         !formData.assignedUser ||
@@ -552,7 +687,13 @@ export default function index() {
       console.error("Error saving order:", error);
       alert("Failed to save order. Please try again.");
     } finally {
-      fetchOrders();
+      // fetchOrders();
+      setPagination(prev => ({
+      ...prev,
+      pageIndex: 0,
+      hasMore: true
+    }));
+    fetchOrders(0, false); 
       setLoading(false);
     }
   };
@@ -570,61 +711,71 @@ export default function index() {
   };
 
   const handleEdit = async (order) => {
-  const orderID = order.id || order.orderID;
+    const orderID = order.id || order.orderID;
 
-  try {
-    // Get full order details first
-    const orderResponse = await fetch(`${API_ENDPOINTS.ORDERS}/${orderID}`);
-    const fullOrder = await orderResponse.json();
+    try {
+      // Get full order details first
+      const orderResponse = await fetch(`${API_ENDPOINTS.ORDERS}/${orderID}`);
+      const fullOrder = await orderResponse.json();
 
-    if (fullOrder.outVal !== 1 || !fullOrder.data) {
-      alert("Full order data not found");
-      return;
+      if (fullOrder.outVal !== 1 || !fullOrder.data) {
+        alert("Full order data not found");
+        return;
+      }
+
+      const o = fullOrder.data;
+
+      // Fetch history too (optional, if needed for side panel)
+      const historyResponse = await fetch(
+        `${API_ENDPOINTS.ORDERS}/history/${orderID}`
+      );
+      const historyResult = await historyResponse.json();
+      if (historyResult.outVal === 1) {
+        setOrderHistory(historyResult.data);
+      }
+
+      // Find matching dropdown IDs
+      const clientId = clients.find((c) => c.name === o.clientName)?.id || "";
+      const productId = product.find((p) => p.name === o.productName)?.id || "";
+      const weightTypeId =
+        weightTypes.find((p) => p.id === o.weightTypeID)?.id || "";
+      const productWeightTypeId =
+        productWeightType.find((p) => p.id === o.productWeightTypeID)?.id || "";
+      const operationTypeId =
+        operationType.find((p) => p.name === o.operationName)?.id || "";
+      const assignedToId =
+        assignedTo.find((p) => p.id === o.fUserAssignID)?.id || "";
+
+      // Set form data with full fields
+      setFormData({
+        client: clientId.toString(),
+        product: productId.toString(),
+        orderDate: new Date(o.orderOnRaw || o.orderOn)
+          .toISOString()
+          .split("T")[0],
+        weight: o.weight,
+        weightType: weightTypeId.toString(),
+        productWeight: o.productWeight,
+        productWeightType: productWeightTypeId.toString(),
+        totalQty: o.productQty,
+        pricePerQty: o.pricePerQty,
+        totalPrice: o.totalPrice,
+        description: o.description,
+        operationType: operationTypeId.toString(),
+        assignedUser: assignedToId.toString(),
+        status:
+          o.status === "Completed" || o.status === 1 || o.status === "1"
+            ? "Completed"
+            : "Processing",
+      });
+
+      setEditingId(orderID);
+      setShowAddForm(true);
+    } catch (error) {
+      console.error("Error fetching order data for editing:", error);
+      alert("Failed to load order for editing.");
     }
-
-    const o = fullOrder.data;
-
-    // Fetch history too (optional, if needed for side panel)
-    const historyResponse = await fetch(`${API_ENDPOINTS.ORDERS}/history/${orderID}`);
-    const historyResult = await historyResponse.json();
-    if (historyResult.outVal === 1) {
-      setOrderHistory(historyResult.data);
-    }
-
-    // Find matching dropdown IDs
-    const clientId = clients.find((c) => c.name === o.clientName)?.id || "";
-    const productId = product.find((p) => p.name === o.productName)?.id || "";
-    const weightTypeId = weightTypes.find((p) => p.id === o.weightTypeID)?.id || "";
-    const productWeightTypeId = productWeightType.find((p) => p.id === o.productWeightTypeID)?.id || "";
-    const operationTypeId = operationType.find((p) => p.name === o.operationName)?.id || "";
-    const assignedToId = assignedTo.find((p) => p.id === o.fUserAssignID)?.id || "";
-
-    // Set form data with full fields
-    setFormData({
-      client: clientId.toString(),
-      product: productId.toString(),
-      orderDate: new Date(o.orderOnRaw || o.orderOn).toISOString().split("T")[0],
-      weight: o.weight,
-      weightType: weightTypeId.toString(),
-      productWeight: o.productWeight,
-      productWeightType: productWeightTypeId.toString(),
-      totalQty: o.productQty,
-      pricePerQty: o.pricePerQty,
-      totalPrice: o.totalPrice,
-      description: o.description,
-      operationType: operationTypeId.toString(),
-      assignedUser: assignedToId.toString(),
-      status: (o.status === "Completed" || o.status === 1 || o.status === "1") ? "Completed" : "Processing",
-    });
-
-    setEditingId(orderID);
-    setShowAddForm(true);
-  } catch (error) {
-    console.error("Error fetching order data for editing:", error);
-    alert("Failed to load order for editing.");
-  }
-};
-
+  };
 
   // Handle Delete Order
   const handleDelete = (id) => {
@@ -646,11 +797,16 @@ export default function index() {
 
       // Delete locally
       setData((prev) => prev.filter((item) => item.id !== deleteId));
-
     } catch (error) {
       console.error("Error deleting order:", error);
       alert("Failed to delete order. Please try again.");
     } finally {
+      setPagination(prev => ({
+      ...prev,
+      pageIndex: 0,
+      hasMore: true
+    }));
+    fetchOrders(0, false); 
       setLoading(false);
       setShowDeleteConfirm(false);
       setDeleteId(null);
@@ -873,7 +1029,9 @@ export default function index() {
       </div>
     </div>
   );
-  {formData}
+  {
+    formData;
+  }
   // Add Order Form Component
   if (showAddForm) {
     return (
@@ -931,7 +1089,7 @@ export default function index() {
               </label>
               <div className="relative">
                 <input
-                disabled={!user.isAdmin ? true : false}
+                  disabled={!user.isAdmin ? true : false}
                   type="date"
                   name="orderDate"
                   value={formData.orderDate}
@@ -1137,88 +1295,93 @@ export default function index() {
           </div>
 
           {/* history  */}
-          <div>
-            <h3 className="font-bold pb-2">Order History</h3>
-            {/* {console.log("order history : ",orderHistory)} */}
-            {Array.isArray(orderHistory) && orderHistory.length > 0 ? (
-            // {orderHistory.length > 0 ? (
-              orderHistory.map((row) => (
-                <div key={row.orderID} className="border rounded-lg p-4 bg-gray-50 mt-2">
-                  {/* Card Header */}
-                  <div className="flex justify-between items-start mb-3">
-                    <div>
-                      <div className="font-semibold text-sm text-gray-600">
-                        Order ID
+          {user.isAdmin && (
+            <div>
+              <h3 className="font-bold pb-2">Order History</h3>
+              {/* {console.log("order history : ",orderHistory)} */}
+              {Array.isArray(orderHistory) && orderHistory.length > 0 ? (
+                // {orderHistory.length > 0 ? (
+                orderHistory.map((row) => (
+                  <div
+                    key={row.orderID}
+                    className="border rounded-lg p-4 bg-gray-50 mt-2"
+                  >
+                    {/* Card Header */}
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <div className="font-semibold text-sm text-gray-600">
+                          Order ID
+                        </div>
+                        <div className="font-medium">{row.orderID}</div>
                       </div>
-                      <div className="font-medium">{row.orderID}</div>
-                    </div>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => handleEdit(row)}
-                        className="text-blue-600 hover:bg-blue-50 p-2 rounded cursor-pointer"
-                      >
-                        <Pencil size={16} />
-                      </button>
-                      {/* <button
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleEdit(row)}
+                          className="text-blue-600 hover:bg-blue-50 p-2 rounded cursor-pointer"
+                        >
+                          <Pencil size={16} />
+                        </button>
+                        {/* <button
                         onClick={() => handleDelete(row.orderID)}
                         className="text-red-600 hover:bg-red-50 p-2 rounded cursor-pointer"
                       >
                         <Trash2 size={16} />
                       </button> */}
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Card Content - 2 Column Grid */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                    <div>
-                      <span className="font-medium text-gray-600">
-                        Client Name :
-                      </span>
-                      <div>{row.clientName}</div>
-                    </div>
-                    <div>
-                      <span className="font-medium text-gray-600">
-                        Operation Name :
-                      </span>
-                      <div>{row.operationType}</div>
-                    </div>
-                    <div>
-                      <span className="font-medium text-gray-600">
-                        Assign To :
-                      </span>
-                      <div>{row.assignUser}</div>
-                    </div>
-                    <div>
-                      <span className="font-medium text-gray-600">
-                        Description :
-                      </span>
-                      <div>{row.description}</div>
-                    </div>
-                    <div>
-                      <span className="font-medium text-gray-600">
-                        Status :
-                      </span>
-                      <select
-                        value={row.status}
-                        onChange={(e) =>
-                          handleStatusChange(row.orderID, e.target.value)
-                        }
-                        className="border px-2 py-1 rounded text-sm"
-                        disabled={true}
-                      >
-                        <option value="Processing">🔴 Processing</option>
-                        <option value="Completed">🟢 Completed</option>
-                      </select>
+                    {/* Card Content - 2 Column Grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                      <div>
+                        <span className="font-medium text-gray-600">
+                          Client Name :
+                        </span>
+                        <div>{row.clientName}</div>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-600">
+                          Operation Name :
+                        </span>
+                        <div>{row.operationType}</div>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-600">
+                          Assign To :
+                        </span>
+                        <div>{row.assignUser}</div>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-600">
+                          Description :
+                        </span>
+                        <div>{row.description}</div>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-600">
+                          Status :
+                        </span>
+                        <select
+                          value={row.status}
+                          onChange={(e) =>
+                            handleStatusChange(row.orderID, e.target.value)
+                          }
+                          className="border px-2 py-1 rounded text-sm"
+                          disabled={true}
+                        >
+                          <option value="Processing">🔴 Processing</option>
+                          <option value="Completed">🟢 Completed</option>
+                        </select>
+                      </div>
                     </div>
                   </div>
+                ))
+              ) : (
+                <div className="text-center p-8 text-gray-500 border rounded-lg">
+                  No matching records found.
                 </div>
-              ))
-            ) : (
-              <div className="text-center p-8 text-gray-500 border rounded-lg">
-                No matching records found.
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          )}
 
           {/* Form Actions */}
           <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t">
@@ -1259,18 +1422,72 @@ export default function index() {
             value={search}
             onChange={handleSearch}
           />
+          {user.isAdmin && (
+            <button
+              onClick={handleAddOrder}
+              className={` bg-blue-900 text-white px-4 py-2 rounded flex items-center justify-center gap-2 whitespace-nowrap order-1 sm:order-2`}
+            >
+              <Plus size={16} />
+              <span className="hidden sm:inline">Add Order</span>
+              <span className="sm:hidden">Add Order</span>
+            </button>
+          )}
+        </div>
+        {/* Filter Buttons */}
+        <div className="flex gap-2 mb-4 flex-wrap">
           <button
-            onClick={handleAddOrder}
-            className="bg-blue-900 text-white px-4 py-2 rounded flex items-center justify-center gap-2 whitespace-nowrap order-1 sm:order-2"
+            onClick={() => setActiveFilter("All")}
+            className={`px-4 py-2 rounded transition-colors ${
+              activeFilter === "All"
+                ? "bg-blue-900 text-white"
+                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+            }`}
           >
-            <Plus size={16} />
-            <span className="hidden sm:inline">Add Order</span>
-            <span className="sm:hidden">Add Order</span>
+            All
+          </button>
+          <button
+            onClick={() => setActiveFilter("Processing")}
+            className={`px-4 py-2 rounded transition-colors ${
+              activeFilter === "Processing"
+                ? "bg-blue-900 text-white"
+                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+            }`}
+          >
+            Processing
+          </button>
+          <button
+            onClick={() => setActiveFilter("Completed")}
+            className={`px-4 py-2 rounded transition-colors ${
+              activeFilter === "Completed"
+                ? "bg-blue-900 text-white"
+                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+            }`}
+          >
+            Completed
           </button>
         </div>
       </div>
 
       <div className="hidden lg:block overflow-x-auto">
+      <InfiniteScroll
+    dataLength={filteredData.length}
+    next={loadMoreOrders}
+    hasMore={pagination.hasMore}
+    loader={
+      <div className="text-center py-4">
+        <div className="inline-flex items-center gap-2">
+          <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+          <span className="text-gray-600">Loading more orders...</span>
+        </div>
+      </div>
+    }
+    endMessage={
+      <div className="text-center py-4 text-gray-500">
+        <p>No more orders to load</p>
+      </div>
+    }
+    scrollThreshold={0.95}
+  >
         <table className="min-w-full table-auto border-collapse">
           <thead>
             <tr className="bg-gray-100 text-left ">
@@ -1311,7 +1528,9 @@ export default function index() {
                       </button>
                       <button
                         onClick={() => handleDelete(row.id)}
-                        className={`text-red-600 hover:underline cursor-pointer ${!user.isAdmin ? "hidden" : ""}`}
+                        className={`text-red-600 hover:underline cursor-pointer ${
+                          !user.isAdmin ? "hidden" : ""
+                        }`}
                       >
                         <Trash2 size={16} />
                       </button>
@@ -1328,10 +1547,30 @@ export default function index() {
             )}
           </tbody>
         </table>
+      </InfiniteScroll>
       </div>
 
       {/* Mobile/Tablet Card View */}
       <div className="lg:hidden space-y-4">
+        <InfiniteScroll
+    dataLength={filteredData.length}
+    next={loadMoreOrders}
+    hasMore={pagination.hasMore}
+    loader={
+      <div className="text-center py-4">
+        <div className="inline-flex items-center gap-2">
+          <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+          <span className="text-gray-600">Loading more orders...</span>
+        </div>
+      </div>
+    }
+    endMessage={
+      <div className="text-center py-4 text-gray-500">
+        <p>No more orders to load</p>
+      </div>
+    }
+    scrollThreshold={0.95}
+  >
         {filteredData.length > 0 ? (
           filteredData.map((row) => (
             <div key={row.id} className="border rounded-lg p-4 bg-gray-50">
@@ -1341,7 +1580,7 @@ export default function index() {
                   <div className="font-semibold text-sm text-gray-600">
                     Order ID
                   </div>
-                  <div className="font-medium">{row.id}</div>
+                  <div className="font-medium">{row.orderNo}</div>
                 </div>
                 <div className="flex gap-2">
                   <button
@@ -1352,7 +1591,9 @@ export default function index() {
                   </button>
                   <button
                     onClick={() => handleDelete(row.id)}
-                    className={`text-red-600 hover:bg-red-50 p-2 rounded cursor-pointer ${!user.isAdmin ? "hidden" : ""}` }
+                    className={`text-red-600 hover:bg-red-50 p-2 rounded cursor-pointer ${
+                      !user.isAdmin ? "hidden" : ""
+                    }`}
                   >
                     <Trash2 size={16} />
                   </button>
@@ -1411,6 +1652,7 @@ export default function index() {
             No matching records found.
           </div>
         )}
+        </InfiniteScroll>
       </div>
 
       <div className="mt-4 text-sm text-gray-500 text-center">

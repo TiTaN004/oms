@@ -276,7 +276,8 @@ export default function Sidebar() {
                 </ProtectedRoute>
               }
             />
-            <Route path="/casting-orders" element={<ProtectedRoute adminOnly={true}> <CastingOrder /></ProtectedRoute>} />
+
+            <Route path="/casting-orders" element={<ProtectedRoute adminOnly={false}> <CastingOrder /></ProtectedRoute>} />
             <Route path="/user" element={<ProtectedRoute adminOnly={true}> <UserComponent /></ProtectedRoute>} />
             <Route path="/products" element={<ProtectedRoute adminOnly={true}> <Product /></ProtectedRoute>} />
             <Route path="/client-master" element={<ProtectedRoute adminOnly={true}> <ClientMaster /></ProtectedRoute>} />

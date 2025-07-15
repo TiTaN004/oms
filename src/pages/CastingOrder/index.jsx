@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Plus, Pencil, Trash2, ArrowLeft, Save } from "lucide-react";
 import API_ENDPOINTS from "../../utils/apiConfig";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../login/ProtectedRoute";
 
 export default function index() {
   // state variables
@@ -20,13 +21,18 @@ export default function index() {
     status: "pending",
     orderDate: new Date().toISOString().split("T")[0],
   });
-
+  
+  // filter
+  const [activeFilter, setActiveFilter] = useState("All");
+  
   // Dropdown data states
   const [clients, setClients] = useState([]);
   const [users, setUsers] = useState([]);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  const {user} = useAuth()
 
   // Navigation hook
   const nav = useNavigate();
@@ -180,12 +186,30 @@ export default function index() {
     setSearch(e.target.value);
   };
 
-  const filteredData = data.filter(
-    (item) =>
-      item.client?.toLowerCase().includes(search.toLowerCase()) ||
+  // const filteredData = data.filter(
+  //   (item) =>
+  //     item.client?.toLowerCase().includes(search.toLowerCase()) ||
+  //     item.product?.toLowerCase().includes(search.toLowerCase()) ||
+  //     item.user?.toLowerCase().includes(search.toLowerCase())
+  // );
+
+    const filteredData = (data || []).filter((item) => {
+  // First filter by search term
+  const matchesSearch = item.client?.toLowerCase().includes(search.toLowerCase()) ||
       item.product?.toLowerCase().includes(search.toLowerCase()) ||
       item.user?.toLowerCase().includes(search.toLowerCase())
-  );
+  
+  // Then filter by status
+  let matchesStatus = true;
+  if (activeFilter === 'Pending') {
+    matchesStatus = item?.status?.toLowerCase() === 'pending';
+  } else if (activeFilter === 'Completed') {
+    matchesStatus = item?.status?.toLowerCase() === 'completed';
+  }
+  // For 'All', matchesStatus remains true
+  
+  return matchesSearch && matchesStatus;
+});
 
   const handleStatusChange = async (id, status) => {
     try {
@@ -646,13 +670,48 @@ export default function index() {
             value={search}
             onChange={handleSearch}
           />
+          {user.isAdmin && 
           <button
             onClick={handleAddOrder}
-            className="bg-blue-900 text-white px-4 py-2 rounded flex items-center justify-center gap-2 whitespace-nowrap order-1 sm:order-2"
+            className={`bg-blue-900 text-white px-4 py-2 rounded flex items-center justify-center gap-2 whitespace-nowrap order-1 sm:order-2 `}
           >
             <Plus size={16} />
             <span className="hidden sm:inline">Add Order</span>
             <span className="sm:hidden">Add Order</span>
+          </button>
+          }
+        </div>
+        {/* Filter Buttons */}
+        <div className="flex gap-2 mb-4 flex-wrap">
+          <button
+            onClick={() => setActiveFilter("All")}
+            className={`px-4 py-2 rounded transition-colors ${
+              activeFilter === "All"
+                ? "bg-blue-900 text-white"
+                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+            }`}
+          >
+            All
+          </button>
+          <button
+            onClick={() => setActiveFilter("Pending")}
+            className={`px-4 py-2 rounded transition-colors ${
+              activeFilter === "Processing"
+                ? "bg-blue-900 text-white"
+                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+            }`}
+          >
+            Pending
+          </button>
+          <button
+            onClick={() => setActiveFilter("Completed")}
+            className={`px-4 py-2 rounded transition-colors ${
+              activeFilter === "Completed"
+                ? "bg-blue-900 text-white"
+                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+            }`}
+          >
+            Completed
           </button>
         </div>
       </div>
@@ -670,7 +729,7 @@ export default function index() {
               <th className="p-3 font-medium">Size</th>
               <th className="p-3 font-medium">Status</th>
               <th className="p-3 font-medium">Order Date</th>
-              <th className="p-3 font-medium">Action</th>
+              <th className={`p-3 font-medium ${user.operationTypeID == 2 ? "hidden" : ""}`}>Action</th>
             </tr>
           </thead>
           <tbody>
@@ -689,6 +748,7 @@ export default function index() {
                       onChange={(e) =>
                         handleStatusChange(row.id, e.target.value)
                       }
+                      disabled={user.operationTypeID == 2 }
                       className="border px-2 py-1 rounded"
                     >
                       <option value="pending">🔴 Pending</option>
@@ -696,7 +756,7 @@ export default function index() {
                     </select>
                   </td>
                   <td className="p-3">{row.orderDate}</td>
-                  <td className="p-3">
+                  <td className={`p-3 ${user.operationTypeID == 2 ? "hidden" : ""}`}>
                     <div className="flex gap-2">
                       <button
                         onClick={() => handleEdit(row)}
@@ -738,7 +798,7 @@ export default function index() {
                   </div>
                   <div className="font-medium">{row.id}</div>
                 </div>
-                <div className="flex gap-2">
+                <div className={`flex gap-2 ${user.operationTypeID == 2 ? "hidden" : ""}`}>
                   <button
                     onClick={() => handleEdit(row)}
                     className="text-blue-600 hover:bg-blue-50 p-2 rounded cursor-pointer"
@@ -789,6 +849,7 @@ export default function index() {
                   <select
                     value={row.status}
                     onChange={(e) => handleStatusChange(row.id, e.target.value)}
+                    disabled={user.operationTypeID == 2 }
                     className="border px-3 py-1 rounded mt-1 w-full"
                   >
                     <option value="pending">🔴 Pending</option>

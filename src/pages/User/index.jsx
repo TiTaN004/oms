@@ -125,10 +125,8 @@ export default function index() {
     setLoading(true);
 
     try {
-
       // Validate required fields
       if (
-        !formData.userID ||
         !formData.fullName ||
         !formData.userName ||
         !formData.mobileNo ||
@@ -246,7 +244,7 @@ export default function index() {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to delete order");
+        throw new Error("Failed to delete user");
       }
 
       // For demo purposes, delete locally
@@ -392,10 +390,10 @@ export default function index() {
             {/* mobileNo No. */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                mobileNo No. *
+                mobileNo *
               </label>
               <input
-                type="text"
+                type="number"
                 name="mobileNo"
                 value={formData.mobileNo}
                 onChange={handleFormChange}
