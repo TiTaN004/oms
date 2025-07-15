@@ -163,6 +163,13 @@ export default function index() {
           hasMore: result.pagination.hasMore,
         }));
 
+        console.log("Orders fetched successfully:", {
+          pageIndex: result.pagination.pageIndex,
+          hasMore: result.pagination.hasMore,
+          totalCount: result.pagination.totalCount,
+          newDataLength: transformedData.length
+        });
+
         // Remove allOrders state - use only data state
         // setAllOrders is not needed anymore
       }
@@ -176,8 +183,12 @@ export default function index() {
 
   const loadMoreOrders = () => {
     console.log("load more called", pagination);
-    if (pagination.hasMore && !isLoadingMore) {
-      console.log(pagination.pageIndex + 1)
+    console.log("isLoadingMore:", isLoadingMore);
+    console.log("hasMore:", pagination.hasMore);
+    console.log("current pageIndex:", pagination.pageIndex);
+    
+    if (pagination.hasMore && !isLoadingMore && !loading) {
+      console.log("Fetching page:", pagination.pageIndex + 1);
       fetchOrders(pagination.pageIndex + 1, true);
     }
   };
@@ -186,6 +197,22 @@ export default function index() {
   useEffect(() => {
     fetchAllData();
   }, []);
+
+  // Reset pagination when search or filter changes
+  useEffect(() => {
+    if (search || activeFilter !== "All") {
+      // Don't use infinite scroll when filtering/searching
+      return;
+    } else {
+      // Reset and reload when clearing filters
+      setPagination((prev) => ({
+        ...prev,
+        pageIndex: 0,
+        hasMore: true,
+      }));
+      fetchOrders(0, false);
+    }
+  }, [search, activeFilter]);
 
   const fetchClients = async () => {
     try {
@@ -1336,12 +1363,12 @@ export default function index() {
         </div>
       </div>
 
-      <div className="hidden lg:block overflow-auto h-screen">
+      <div id="orders-scroll-container" className="hidden lg:block overflow-auto h-[calc(100vh-300px)]">
         {console.log("data",data.length, pagination.hasMore)}
         <InfiniteScroll
-          dataLength={data.length}
+          dataLength={filteredData.length}
           next={loadMoreOrders}
-          hasMore={pagination.hasMore}
+          hasMore={pagination.hasMore && !search && activeFilter === "All"}
           loader={
             <div className="text-center py-4">
               <div className="inline-flex items-center gap-2">
@@ -1355,7 +1382,8 @@ export default function index() {
               <p>No more orders to load</p>
             </div>
           }
-          scrollThreshold={0.95}
+          scrollThreshold={0.8}
+          scrollableTarget="orders-scroll-container"
         >
           <table className="min-w-full table-auto border-collapse">
             <thead>
@@ -1420,12 +1448,12 @@ export default function index() {
       </div>
 
       {/* Mobile/Tablet Card View */}
-      <div className="lg:hidden space-y-4">
+      <div id="orders-mobile-scroll-container" className="lg:hidden space-y-4 max-h-[calc(100vh-300px)] overflow-auto">
         {console.log("data",data.length, pagination.hasMore)}
         <InfiniteScroll
-          dataLength={data.length}
+          dataLength={filteredData.length}
           next={loadMoreOrders}
-          hasMore={pagination.hasMore}
+          hasMore={pagination.hasMore && !search && activeFilter === "All"}
           loader={
             <div className="text-center py-4">
               <div className="inline-flex items-center gap-2">
@@ -1439,7 +1467,8 @@ export default function index() {
               <p>No more orders to load</p>
             </div>
           }
-          scrollThreshold={0.95}
+          scrollThreshold={0.8}
+          scrollableTarget="orders-mobile-scroll-container"
         >
           {filteredData.length > 0 ? (
             filteredData.map((row) => (
