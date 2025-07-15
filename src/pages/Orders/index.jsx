@@ -18,76 +18,6 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../login/ProtectedRoute";
 import InfiniteScroll from "react-infinite-scroll-component";
 
-// const sampleData = [
-//   {
-//     client: "DEF Industries",
-//     id: "ORD001",
-//     product: "LCOK DABI",
-//     orderDate: "2024-06-07",
-//     weight: 50,
-//     weightType: "kg",
-//     productWeight: 45,
-//     productWeightType: "kg",
-//     totalQty: 3000,
-//     pricePerQty: 0,
-//     totalPrice: 3000,
-//     description: "High precision valve casting for industrial application",
-//     operationType: "admin",
-//     assignedUser: "null",
-//     status: "in progress",
-//   },
-//   {
-//     client: "DEF Manufacturing",
-//     id: "ORD002",
-//     product: "s hendal 4",
-//     orderDate: "2024-06-08",
-//     weight: 50,
-//     weightType: "kg",
-//     productWeight: 45,
-//     productWeightType: "kg",
-//     totalQty: 10,
-//     pricePerQty: 150,
-//     totalPrice: 1500,
-//     description: "High precision valve casting for industrial application",
-//     operationType: "Tunning",
-//     assignedUser: "null",
-//     status: "in progress",
-//   },
-// ];
-
-// // Sample dropdown data (this would come from PHP backend)
-// const sampleClients = [
-//   { id: 1, name: "ABC Corp" },
-//   { id: 2, name: "XYZ Ltd" },
-//   { id: 3, name: "DEF Industries" },
-//   { id: 4, name: "GHI Manufacturing" },
-// ];
-
-// const sampleProduct = [
-//   { id: 1, name: "LCOK DABI" },
-//   { id: 2, name: "s hendal 4" },
-// ];
-
-// const sampleWeightType = [
-//   { id: 1, name: "kg" },
-//   { id: 2, name: "gram" },
-// ];
-// const sampleProductWeightType = [
-//   { id: 1, name: "kg" },
-//   { id: 2, name: "gram" },
-// ];
-// const sampleOperationType = [
-//   { id: 1, name: "admin" },
-//   { id: 2, name: "GE" },
-//   { id: 3, name: "Buff" },
-//   { id: 4, name: "Tunning" },
-// ];
-// const sampleAssginedUser = [{ id: 1, name: "null" }];
-// // Status utility functions
-// const getStatusLabel = (status) => {
-//   return status === 1 ? "Completed" : "Processing";
-// };
-
 const getStatusValue = (status) => {
   if (typeof status === "string") {
     return status.toLowerCase() === "completed" ? 1 : 0;
@@ -157,26 +87,6 @@ export default function index() {
     fetchAllData();
   }, []);
 
-  // const fetchAllData = async () => {
-  //   setLoading(true);
-  //   try {
-  //     // Fetch all required data in parallel
-  //     await Promise.all([
-  //       fetchOrders(),
-  //       fetchClients(),
-  //       fetchProducts(),
-  //       fetchWeightTypes(),
-  //       fetchOperationTypes(),
-  //       fetchUsers(),
-  //     ]);
-  //   } catch (error) {
-  //     console.error("Error fetching data:", error);
-  //     alert("Failed to fetch data. Please try again.");
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
   const fetchAllData = async () => {
   setLoading(true);
   try {
@@ -196,46 +106,6 @@ export default function index() {
     setLoading(false);
   }
 };
-
-  // const fetchOrders = async () => {
-  //   try {
-  //     const response = await fetch(
-  //       `${API_ENDPOINTS.ORDERS}/?userID=${user.userID}&isAdmin=${user.isAdmin}`
-  //     );
-  //     const result = await response.json();
-  //     // console.log(result.data)
-  //     if (result.outVal === 1) {
-  //       // match data to the expected format
-  //       const transformedData = result.data.map((order) => ({
-  //         id: order.orderID,
-  //         orderNo: order.orderNo,
-  //         client: order.clientName,
-  //         product: order.productName,
-  //         orderDate: order.orderOn,
-  //         weight: order.weight,
-  //         weightType: order.weightTypeText,
-  //         productWeight: order.productWeight,
-  //         productWeightType: order.productWeightText,
-  //         totalQty: order.productQty,
-  //         pricePerQty: order.pricePerQty,
-  //         totalPrice: order.totalPrice,
-  //         description: order.description,
-  //         operationType: order.operationName,
-  //         assignedUser: order.assignUser,
-  //         status: order.status,
-  //         fClientID: order.fClientID,
-  //         fProductID: order.fProductID,
-  //         WeightTypeID: order.weightTypeID,
-  //         productWeightTypeID: order.productWeightTypeID,
-  //         fOperationID: order.fOperationID,
-  //         fAssignUserID: order.fUserAssignID,
-  //       }));
-  //       setData(transformedData);
-  //     }
-  //   } catch (error) {
-  //     console.error("Error fetching orders:", error);
-  //   }
-  // };
 
   const fetchOrders = async (pageIndex = 0, isLoadMore = false) => {
   try {
@@ -310,6 +180,7 @@ export default function index() {
 };
 
 const loadMoreOrders = () => {
+  console.log('load more called')
   if (pagination.hasMore && !isLoadingMore) {
     fetchOrders(pagination.pageIndex + 1, true);
   }
@@ -1468,7 +1339,7 @@ useEffect(() => {
         </div>
       </div>
 
-      <div className="hidden lg:block overflow-x-auto">
+      <div className="hidden lg:block overflow-auto">
       <InfiniteScroll
     dataLength={filteredData.length}
     next={loadMoreOrders}
