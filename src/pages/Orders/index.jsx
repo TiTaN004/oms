@@ -74,7 +74,7 @@ export default function index() {
     totalCount: 0,
     hasMore: true,
   });
-  const [allOrders, setAllOrders] = useState([]); // Store all loaded orders
+  
   const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   // navigation hook
@@ -106,79 +106,6 @@ export default function index() {
       setLoading(false);
     }
   };
-
-  //   const fetchOrders = async (pageIndex = 0, isLoadMore = false) => {
-  //   try {
-  //     if (!isLoadMore) {
-  //       setLoading(true);
-  //     } else {
-  //       setIsLoadingMore(true);
-  //     }
-
-  //     const response = await fetch(
-  //       `${API_ENDPOINTS.ORDERS}/?userID=${user.userID}&isAdmin=${user.isAdmin}&pageIndex=${pageIndex}&pageSize=${pagination.pageSize}`
-  //     );
-  //     const result = await response.json();
-
-  //     if (result.outVal === 1) {
-  //       // Transform data to expected format
-  //       const transformedData = result.data.map((order) => ({
-  //         id: order.orderID,
-  //         orderNo: order.orderNo,
-  //         client: order.clientName,
-  //         product: order.productName,
-  //         orderDate: order.orderOn,
-  //         weight: order.weight,
-  //         weightType: order.weightTypeText,
-  //         productWeight: order.productWeight,
-  //         productWeightType: order.productWeightText,
-  //         totalQty: order.productQty,
-  //         pricePerQty: order.pricePerQty,
-  //         totalPrice: order.totalPrice,
-  //         description: order.description,
-  //         operationType: order.operationName,
-  //         assignedUser: order.assignUser,
-  //         status: order.status,
-  //         fClientID: order.fClientID,
-  //         fProductID: order.fProductID,
-  //         WeightTypeID: order.weightTypeID,
-  //         productWeightTypeID: order.productWeightTypeID,
-  //         fOperationID: order.fOperationID,
-  //         fAssignUserID: order.fUserAssignID,
-  //       }));
-
-  //       if (isLoadMore) {
-  //         // Append new data to existing data
-  //         setAllOrders(prev => [...prev, ...transformedData]);
-  //       } else {
-  //         // Replace data for initial load
-  //         setAllOrders(transformedData);
-  //       }
-
-  //       // Update pagination info
-  //       setPagination(prev => ({
-  //         ...prev,
-  //         pageIndex: result.pagination.pageIndex,
-  //         pageSize: result.pagination.pageSize,
-  //         totalCount: result.pagination.totalCount,
-  //         hasMore: result.pagination.hasMore
-  //       }));
-
-  //       // Update the main data state for compatibility with existing code
-  //       if (isLoadMore) {
-  //         setData(prev => [...prev, ...transformedData]);
-  //       } else {
-  //         setData(transformedData);
-  //       }
-  //     }
-  //   } catch (error) {
-  //     console.error("Error fetching orders:", error);
-  //   } finally {
-  //     setLoading(false);
-  //     setIsLoadingMore(false);
-  //   }
-  // };
-
   const fetchOrders = async (pageIndex = 0, isLoadMore = false) => {
     try {
       if (!isLoadMore) {
