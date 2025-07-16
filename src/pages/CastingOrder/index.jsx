@@ -98,7 +98,7 @@ export default function index() {
       });
 
       // Add user filter if needed
-      if (user.isAdmin) {
+      if (!user.isAdmin) {
         params.append('userID', user.userID.toString());
       }
 
