@@ -3,10 +3,9 @@ import { Plus, Pencil, Trash2, ArrowLeft, Save } from "lucide-react";
 import API_ENDPOINTS from "../../utils/apiConfig";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../login/ProtectedRoute";
-import InfiniteScroll from "react-infinite-scroll-component";
 
 export default function index() {
- // state variables
+  // state variables
   const [search, setSearch] = useState("");
   const [data, setData] = useState([]);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -26,21 +25,12 @@ export default function index() {
   // filter
   const [activeFilter, setActiveFilter] = useState("All");
   
-  // Pagination state
-  const [pagination, setPagination] = useState({
-    pageIndex: 0,
-    pageSize: 10,
-    totalCount: 0,
-    hasMore: true,
-  });
-  
   // Dropdown data states
   const [clients, setClients] = useState([]);
   const [users, setUsers] = useState([]);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [initialLoading, setInitialLoading] = useState(true);
 
   const {user} = useAuth()
 
@@ -52,28 +42,13 @@ export default function index() {
     fetchAllData();
   }, []);
 
-  // Reset pagination when search or filter changes
-  useEffect(() => {
-    resetAndFetchData();
-  }, [search, activeFilter]);
-
-  const resetAndFetchData = async () => {
-    setData([]);
-    setPagination(prev => ({
-      ...prev,
-      pageIndex: 0,
-      hasMore: true,
-    }));
-    await fetchCastingOrders(0, true);
-  };
-
   const fetchAllData = async () => {
-    setInitialLoading(true);
+    setLoading(true);
     setError(null);
     try {
       // Fetch all required data in parallel
       await Promise.all([
-        fetchCastingOrders(0, true),
+        fetchCastingOrders(),
         fetchClients(),
         fetchUsers(),
         fetchProducts(),
@@ -82,27 +57,13 @@ export default function index() {
       setError("Failed to load data. Please refresh the page.");
       console.error("Error fetching data:", error);
     } finally {
-      setInitialLoading(false);
+      setLoading(false);
     }
   };
 
-  const fetchCastingOrders = async (pageIndex = 0, reset = false) => {
+  const fetchCastingOrders = async () => {
     try {
-      setLoading(true);
-      
-      // Build query parameters
-      const params = new URLSearchParams({
-        pageIndex: pageIndex.toString(),
-        pageSize: pagination.pageSize.toString(),
-        getCount: pageIndex === 0 ? 'true' : 'false', // Only get count on first page
-      });
-
-      // Add user filter if needed
-      if (!user.isAdmin) {
-        params.append('userID', user.userID.toString());
-      }
-
-      const response = await fetch(`${API_ENDPOINTS.CASTING_ORDERS}?${params}`, {
+      const response = await fetch(`${API_ENDPOINTS.CASTING_ORDERS}${!user.isAdmin ? `?userID=${user.userID}` : ""}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -116,37 +77,13 @@ export default function index() {
       const responseData = await response.json();
 
       if (responseData.success) {
-        const newData = responseData.data || [];
-        
-        // Update data based on whether it's a reset or append
-        if (reset) {
-          setData(newData);
-        } else {
-          setData(prev => [...prev, ...newData]);
-        }
-
-        // Update pagination
-        setPagination(prev => ({
-          ...prev,
-          pageIndex: pageIndex,
-          totalCount: responseData.pagination?.totalCount || prev.totalCount,
-          hasMore: responseData.pagination?.hasMore || false,
-        }));
+        setData(responseData.data || []);
       } else {
         throw new Error(responseData.error || "Failed to fetch casting orders");
       }
     } catch (error) {
       console.error("Error fetching casting orders:", error);
-      setError(error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchMoreData = () => {
-    if (!loading && pagination.hasMore) {
-      const nextPage = pagination.pageIndex + 1;
-      fetchCastingOrders(nextPage, false);
+      throw error;
     }
   };
 
@@ -249,23 +186,30 @@ export default function index() {
     setSearch(e.target.value);
   };
 
-  const filteredData = (data || []).filter((item) => {
-    // First filter by search term
-    const matchesSearch = item.client?.toLowerCase().includes(search.toLowerCase()) ||
-        item.product?.toLowerCase().includes(search.toLowerCase()) ||
-        item.user?.toLowerCase().includes(search.toLowerCase())
-    
-    // Then filter by status
-    let matchesStatus = true;
-    if (activeFilter === 'Pending') {
-      matchesStatus = item?.status?.toLowerCase() === 'pending';
-    } else if (activeFilter === 'Completed') {
-      matchesStatus = item?.status?.toLowerCase() === 'completed';
-    }
-    // For 'All', matchesStatus remains true
-    
-    return matchesSearch && matchesStatus;
-  });
+  // const filteredData = data.filter(
+  //   (item) =>
+  //     item.client?.toLowerCase().includes(search.toLowerCase()) ||
+  //     item.product?.toLowerCase().includes(search.toLowerCase()) ||
+  //     item.user?.toLowerCase().includes(search.toLowerCase())
+  // );
+
+    const filteredData = (data || []).filter((item) => {
+  // First filter by search term
+  const matchesSearch = item.client?.toLowerCase().includes(search.toLowerCase()) ||
+      item.product?.toLowerCase().includes(search.toLowerCase()) ||
+      item.user?.toLowerCase().includes(search.toLowerCase())
+  
+  // Then filter by status
+  let matchesStatus = true;
+  if (activeFilter === 'Pending') {
+    matchesStatus = item?.status?.toLowerCase() === 'pending';
+  } else if (activeFilter === 'Completed') {
+    matchesStatus = item?.status?.toLowerCase() === 'completed';
+  }
+  // For 'All', matchesStatus remains true
+  
+  return matchesSearch && matchesStatus;
+});
 
   const handleStatusChange = async (id, status) => {
     try {
@@ -390,8 +334,10 @@ export default function index() {
       const result = await response.json();
 
       if (result.success) {
-        // Reset and refresh the casting orders data
-        await resetAndFetchData();
+        // Refresh the casting orders data
+        await fetchCastingOrders();
+
+        // alert(editingId ? "Order updated successfully!" : "Order created successfully!");
         handleGoBack();
       } else {
         throw new Error(result.error || "Failed to save order");
@@ -461,11 +407,7 @@ export default function index() {
       if (result.success) {
         // Remove from local state
         setData((prev) => prev.filter((item) => item.id !== deleteId));
-        // Update pagination count
-        setPagination(prev => ({
-          ...prev,
-          totalCount: prev.totalCount > 0 ? prev.totalCount - 1 : 0,
-        }));
+        // alert("Order deleted successfully!");
       } else {
         throw new Error(result.error || "Failed to delete order");
       }
@@ -521,16 +463,8 @@ export default function index() {
     </div>
   );
 
-  // Loading component for infinite scroll
-  const LoadingSpinner = () => (
-    <div className="flex items-center justify-center py-4">
-      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-900"></div>
-      <span className="ml-2 text-sm text-gray-600">Loading more...</span>
-    </div>
-  );
-
-  // Show loading state for initial load
-  if (initialLoading) {
+  // Show loading state
+  if (loading && data.length === 0) {
     return (
       <div className="bg-white p-6 rounded shadow">
         <div className="flex items-center justify-center py-12">
@@ -747,63 +681,41 @@ export default function index() {
           </button>
           }
         </div>
-      </div>
-
-      {/* Filter Buttons */}
-      <div className="flex gap-2 mb-4 flex-wrap">
-        <button
-          onClick={() => setActiveFilter("All")}
-          className={`px-4 py-2 rounded transition-colors ${
-            activeFilter === "All"
-              ? "bg-blue-900 text-white"
-              : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-          }`}
-        >
-          All
-        </button>
-        <button
-          onClick={() => setActiveFilter("Pending")}
-          className={`px-4 py-2 rounded transition-colors ${
-            activeFilter === "Pending"
-              ? "bg-blue-900 text-white"
-              : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-          }`}
-        >
-          Pending
-        </button>
-        <button
-          onClick={() => setActiveFilter("Completed")}
-          className={`px-4 py-2 rounded transition-colors ${
-            activeFilter === "Completed"
-              ? "bg-blue-900 text-white"
-              : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-          }`}
-        >
-          Completed
-        </button>
-      </div>
-
-      {/* Pagination Info */}
-      {pagination.totalCount > 0 && (
-        <div className="mb-4 text-sm text-gray-600">
-          Showing {filteredData.length} of {data.length} orders
-          {pagination.totalCount && ` (Total: ${pagination.totalCount})`}
+        {/* Filter Buttons */}
+        <div className="flex gap-2 mb-4 flex-wrap">
+          <button
+            onClick={() => setActiveFilter("All")}
+            className={`px-4 py-2 rounded transition-colors ${
+              activeFilter === "All"
+                ? "bg-blue-900 text-white"
+                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+            }`}
+          >
+            All
+          </button>
+          <button
+            onClick={() => setActiveFilter("Pending")}
+            className={`px-4 py-2 rounded transition-colors ${
+              activeFilter === "Processing"
+                ? "bg-blue-900 text-white"
+                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+            }`}
+          >
+            Pending
+          </button>
+          <button
+            onClick={() => setActiveFilter("Completed")}
+            className={`px-4 py-2 rounded transition-colors ${
+              activeFilter === "Completed"
+                ? "bg-blue-900 text-white"
+                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+            }`}
+          >
+            Completed
+          </button>
         </div>
-      )}
+      </div>
 
-      {/* Infinite Scroll Container */}
-      <InfiniteScroll
-        dataLength={filteredData.length}
-        next={fetchMoreData}
-        hasMore={pagination.hasMore}
-        loader={<LoadingSpinner />}
-        endMessage={
-          <div className="text-center py-4 text-gray-500">
-            <p>No more orders to load</p>
-          </div>
-        }
-        scrollThreshold={0.8}
-      >
       {/* Desktop Table View */}
       <div className="hidden lg:block overflow-x-auto">
         <table className="min-w-full table-auto border-collapse">
@@ -953,7 +865,6 @@ export default function index() {
           </div>
         )}
       </div>
-      </InfiniteScroll>
 
       {/* Footer */}
       <div className="mt-6 text-xs sm:text-sm text-gray-500 text-center">
