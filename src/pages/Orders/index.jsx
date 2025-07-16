@@ -1300,7 +1300,7 @@ export default function index() {
   }
 
   return (
-    <div className="bg-white p-6 rounded shadow">
+<div className="bg-white p-6 rounded shadow">
       {/* Header Section */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-4">
         <h2 className="text-lg font-semibold">Orders</h2>
@@ -1360,123 +1360,10 @@ export default function index() {
         </div>
       </div>
 
-      {/* <button onClick={loadMoreOrders}>
-        load more
-      </button> */}
-
-      {/* <InfiniteScroll
-        dataLength={filteredData.length}
-        next={loadMoreOrders}
-        hasMore={pagination.hasMore}
-        loader={
-          <div className="text-center py-4">
-            <div className="inline-flex items-center gap-2">
-              <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-              <span className="text-gray-600">Loading more orders...</span>
-            </div>
-          </div>
-        }
-        endMessage={
-          <div className="text-center py-4 text-gray-500">
-            <p>No more orders to load</p>
-          </div>
-        }
-        scrollableTarget="scrollableDiv"
-        scrollThreshold={0.8} // Increased from 0.
-      > */}
-      <InfiniteScroll
-        dataLength={filteredData.length}
-        next={loadMoreOrders}
-        hasMore={pagination.hasMore}
-        loader={
-          <div className="text-center py-4">
-            <div className="inline-flex items-center gap-2">
-              <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-              <span className="text-gray-600">Loading more orders...</span>
-            </div>
-          </div>
-        }
-        endMessage={
-          <div className="text-center py-4 text-gray-500">
-            <p>No more orders to load</p>
-          </div>
-        }
-        scrollableTarget="scrollableDiv"
-        scrollThreshold={0.5} // Increased threshold to trigger load earlier
-        style={{ overflow: "hidden" }} // Prevent double scrollbars
-      >
-        <div
-          id="scrollableDiv"
-          className="hidden lg:block overflow-y-auto"
-          style={{ height: "70vh " }} // Increased from 200px to account for more UI elements
-        >
-          {/* {console.log(data.length)}
-        {console.log("data",filteredData.length, pagination.hasMore)} */}
-          <table className="min-w-full table-auto border-collapse">
-            <thead>
-              <tr className="bg-gray-100 text-left ">
-                <th className="p-3 font-medium">Order ID</th>
-                <th className="p-3 font-medium">Client Name</th>
-                <th className="p-3 font-medium">Operation Name</th>
-                <th className="p-3 font-medium">Assgin to</th>
-                <th className="p-3 font-medium">Product</th>
-                <th className="p-3 font-medium">Product Qty</th>
-                <th className="p-3 font-medium">Price</th>
-                <th className="p-3 font-medium">Total Price</th>
-                <th className="p-3 font-medium">Description</th>
-                <th className="p-3 font-medium">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {/* {console.log("data ",data)}
-            {console.log("filtered data ",filteredData)} */}
-              {filteredData.length > 0 ? (
-                filteredData.map((row) => (
-                  <tr key={row.id} className="border-t-[0.5px]">
-                    <td className="p-3">{row.orderNo}</td>
-                    <td className="p-3">{row.client}</td>
-                    <td className="p-3">{row.operationType}</td>
-                    <td className="p-3">{row.assignedUser}</td>
-                    <td className="p-3">{row.product}</td>
-                    <td className="p-3">{row.totalQty}</td>
-                    <td className="p-3">{row.pricePerQty}</td>
-                    <td className="p-3">{row.totalPrice}</td>
-                    <td className="p-3">{row.description}</td>
-                    <td className="p-3">
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleEdit(row)}
-                          className="text-blue-600 hover:underline cursor-pointer"
-                        >
-                          <Pencil size={16} />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(row.id)}
-                          className={`text-red-600 hover:underline cursor-pointer ${
-                            !user.isAdmin ? "hidden" : ""
-                          }`}
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="8" className="text-center p-4 text-gray-500">
-                    No matching records found.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      {/* </InfiniteScroll> */}
-
-      {/* Mobile/Tablet Card View */}
-      {/* <InfiniteScroll
-          dataLength={data.length}
+      {/* Desktop Table View */}
+      <div className="hidden lg:block">
+        <InfiniteScroll
+          dataLength={filteredData.length}
           next={loadMoreOrders}
           hasMore={pagination.hasMore}
           loader={
@@ -1492,93 +1379,192 @@ export default function index() {
               <p>No more orders to load</p>
             </div>
           }
-          scrollThreshold={0.95}
-        > */}
-      <div className="lg:hidden space-y-4">
-        {/* {console.log("data",data.length, pagination.hasMore)} */}
-        {filteredData.length > 0 ? (
-          filteredData.map((row) => (
-            <div key={row.id} className="border rounded-lg p-4 bg-gray-50">
-              {/* Card Header */}
-              <div className="flex justify-between items-start mb-3">
-                <div>
-                  <div className="font-semibold text-sm text-gray-600">
-                    Order ID
-                  </div>
-                  <div className="font-medium">{row.orderNo}</div>
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => handleEdit(row)}
-                    className="text-blue-600 hover:bg-blue-50 p-2 rounded cursor-pointer"
-                  >
-                    <Pencil size={16} />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(row.id)}
-                    className={`text-red-600 hover:bg-red-50 p-2 rounded cursor-pointer ${
-                      !user.isAdmin ? "hidden" : ""
-                    }`}
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-              </div>
-
-              {/* Card Content - 2 Column Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                <div>
-                  <span className="font-medium text-gray-600">
-                    Client Name :
-                  </span>
-                  <div>{row.client}</div>
-                </div>
-                <div>
-                  <span className="font-medium text-gray-600">
-                    Operation Name :
-                  </span>
-                  <div>{row.operationType}</div>
-                </div>
-                <div>
-                  <span className="font-medium text-gray-600">Assign To :</span>
-                  <div>{row.assignedUser}</div>
-                </div>
-                <div>
-                  <span className="font-medium text-gray-600">Product :</span>
-                  <div>{row.product}</div>
-                </div>
-                <div>
-                  <span className="font-medium text-gray-600">
-                    Product Qty :
-                  </span>
-                  <div>{row.totalQty}</div>
-                </div>
-                <div>
-                  <span className="font-medium text-gray-600">Price :</span>
-                  <div>{row.pricePerQty}</div>
-                </div>
-                <div>
-                  <span className="font-medium text-gray-600">
-                    Total Price :
-                  </span>
-                  <div>{row.totalPrice}</div>
-                </div>
-                <div>
-                  <span className="font-medium text-gray-600">
-                    Description :
-                  </span>
-                  <div>{row.description}</div>
-                </div>
-              </div>
-            </div>
-          ))
-        ) : (
-          <div className="text-center p-8 text-gray-500 border rounded-lg">
-            No matching records found.
+          scrollableTarget="scrollableDiv"
+          scrollThreshold={0.5}
+          style={{ overflow: "hidden" }}
+        >
+          <div
+            id="scrollableDiv"
+            className="overflow-y-auto"
+            style={{ height: "70vh" }}
+          >
+            <table className="min-w-full table-auto border-collapse">
+              <thead>
+                <tr className="bg-gray-100 text-left ">
+                  <th className="p-3 font-medium">Order ID</th>
+                  <th className="p-3 font-medium">Client Name</th>
+                  <th className="p-3 font-medium">Operation Name</th>
+                  <th className="p-3 font-medium">Assgin to</th>
+                  <th className="p-3 font-medium">Product</th>
+                  <th className="p-3 font-medium">Product Qty</th>
+                  <th className="p-3 font-medium">Price</th>
+                  <th className="p-3 font-medium">Total Price</th>
+                  <th className="p-3 font-medium">Description</th>
+                  <th className="p-3 font-medium">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredData.length > 0 ? (
+                  filteredData.map((row) => (
+                    <tr key={row.id} className="border-t-[0.5px]">
+                      <td className="p-3">{row.orderNo}</td>
+                      <td className="p-3">{row.client}</td>
+                      <td className="p-3">{row.operationType}</td>
+                      <td className="p-3">{row.assignedUser}</td>
+                      <td className="p-3">{row.product}</td>
+                      <td className="p-3">{row.totalQty}</td>
+                      <td className="p-3">{row.pricePerQty}</td>
+                      <td className="p-3">{row.totalPrice}</td>
+                      <td className="p-3">{row.description}</td>
+                      <td className="p-3">
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleEdit(row)}
+                            className="text-blue-600 hover:underline cursor-pointer"
+                          >
+                            <Pencil size={16} />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(row.id)}
+                            className={`text-red-600 hover:underline cursor-pointer ${
+                              !user.isAdmin ? "hidden" : ""
+                            }`}
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="10" className="text-center p-4 text-gray-500">
+                      No matching records found.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
-        )}
+        </InfiniteScroll>
       </div>
-      </InfiniteScroll>
+
+      {/* Mobile/Tablet Card View */}
+      <div className="lg:hidden">
+        <div 
+          id="mobileScrollableDiv" 
+          className="overflow-y-auto"
+          style={{ height: "calc(100vh - 300px)" }}
+        >
+          <InfiniteScroll
+            dataLength={filteredData.length}
+            next={loadMoreOrders}
+            hasMore={pagination.hasMore}
+            loader={
+              <div className="text-center py-4">
+                <div className="inline-flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                  <span className="text-gray-600">Loading more orders...</span>
+                </div>
+              </div>
+            }
+            endMessage={
+              <div className="text-center py-4 text-gray-500">
+                <p>No more orders to load</p>
+              </div>
+            }
+            scrollableTarget="mobileScrollableDiv"
+            scrollThreshold={0.8}
+            style={{ overflow: "hidden" }}
+          >
+            <div className="space-y-4">
+              {filteredData.length > 0 ? (
+                filteredData.map((row) => (
+                  <div key={row.id} className="border rounded-lg p-4 bg-gray-50">
+                    {/* Card Header */}
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <div className="font-semibold text-sm text-gray-600">
+                          Order ID
+                        </div>
+                        <div className="font-medium">{row.orderNo}</div>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleEdit(row)}
+                          className="text-blue-600 hover:bg-blue-50 p-2 rounded cursor-pointer"
+                        >
+                          <Pencil size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(row.id)}
+                          className={`text-red-600 hover:bg-red-50 p-2 rounded cursor-pointer ${
+                            !user.isAdmin ? "hidden" : ""
+                          }`}
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Card Content - 2 Column Grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                      <div>
+                        <span className="font-medium text-gray-600">
+                          Client Name :
+                        </span>
+                        <div>{row.client}</div>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-600">
+                          Operation Name :
+                        </span>
+                        <div>{row.operationType}</div>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-600">
+                          Assign To :
+                        </span>
+                        <div>{row.assignedUser}</div>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-600">Product :</span>
+                        <div>{row.product}</div>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-600">
+                          Product Qty :
+                        </span>
+                        <div>{row.totalQty}</div>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-600">Price :</span>
+                        <div>{row.pricePerQty}</div>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-600">
+                          Total Price :
+                        </span>
+                        <div>{row.totalPrice}</div>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-600">
+                          Description :
+                        </span>
+                        <div>{row.description}</div>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center p-8 text-gray-500 border rounded-lg">
+                  No matching records found.
+                </div>
+              )}
+            </div>
+          </InfiniteScroll>
+        </div>
+      </div>
 
       <div className="mt-4 text-sm text-gray-500 text-center">
         © {new Date().getFullYear()}, All Rights Reserved
