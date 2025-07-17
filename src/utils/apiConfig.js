@@ -1,5 +1,5 @@
-// const API_BASE_URL = "https://seashell-goose-138086.hostingersite.com/api";
-const API_BASE_URL = "http://localhost/freelancing/oms-api";
+const API_BASE_URL = "https://seashell-goose-138086.hostingersite.com/api";
+// const API_BASE_URL = "http://localhost/freelancing/oms-api";
 
 export const API_ENDPOINTS = {
   LOGIN: `${API_BASE_URL}/auth/login.php`,

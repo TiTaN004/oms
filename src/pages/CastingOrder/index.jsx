@@ -3,6 +3,7 @@ import { Plus, Pencil, Trash2, ArrowLeft, Save } from "lucide-react";
 import API_ENDPOINTS from "../../utils/apiConfig";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../login/ProtectedRoute";
+import InfiniteScroll from "react-infinite-scroll-component";
 
 export default function index() {
   // state variables
@@ -21,10 +22,10 @@ export default function index() {
     status: "pending",
     orderDate: new Date().toISOString().split("T")[0],
   });
-  
+
   // filter
   const [activeFilter, setActiveFilter] = useState("All");
-  
+
   // Dropdown data states
   const [clients, setClients] = useState([]);
   const [users, setUsers] = useState([]);
@@ -32,10 +33,17 @@ export default function index() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const {user} = useAuth()
+  const { user } = useAuth();
 
   // Navigation hook
   const nav = useNavigate();
+
+  // pagination
+  const [hasMore, setHasMore] = useState(true);
+  const [pageIndex, setPageIndex] = useState(0);
+  const [totalCount, setTotalCount] = useState(0);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const pageSize = 10;
 
   // Fetch all data on component mount
   useEffect(() => {
@@ -43,32 +51,50 @@ export default function index() {
   }, []);
 
   const fetchAllData = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      // Fetch all required data in parallel
-      await Promise.all([
-        fetchCastingOrders(),
-        fetchClients(),
-        fetchUsers(),
-        fetchProducts(),
-      ]);
-    } catch (error) {
-      setError("Failed to load data. Please refresh the page.");
-      console.error("Error fetching data:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  setLoading(true);
+  setError(null);
+  setPageIndex(0);
+  setHasMore(true);
+  
+  try {
+    await Promise.all([
+      fetchCastingOrders(0, true), // Reset data on refresh
+      fetchClients(),
+      fetchUsers(),
+      fetchProducts(),
+    ]);
+  } catch (error) {
+    setError("Failed to load data. Please refresh the page.");
+    console.error("Error fetching data:", error);
+  } finally {
+    setLoading(false);
+  }
+};
 
-  const fetchCastingOrders = async () => {
+  const fetchCastingOrders = async (page = 0, resetData = false) => {
     try {
-      const response = await fetch(`${API_ENDPOINTS.CASTING_ORDERS}${!user.isAdmin ? `?userID=${user.userID}` : ""}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      setIsLoadingMore(true);
+
+      const requestBody = {
+        pageIndex: page,
+        pageSize: pageSize,
+        getCount: page === 0, // Only get count on first load
+      };
+
+      const response = await fetch(
+        `${API_ENDPOINTS.CASTING_ORDERS}?pageIndex=${
+          requestBody.pageIndex
+        }&pageSize=${requestBody.pageSize}${
+          !user.isAdmin ? `&userID=${user.userID}` : ""
+        }`,
+        {
+          // method: "GET", // Change to POST to send pagination data
+          // headers: {
+          //   "Content-Type": "application/json",
+          // },
+          // body: JSON.stringify(requestBody)
+        }
+      );
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -77,13 +103,37 @@ export default function index() {
       const responseData = await response.json();
 
       if (responseData.success) {
-        setData(responseData.data || []);
+        const newData = responseData.data || [];
+
+        if (resetData || page === 0) {
+          setData(newData);
+        } else {
+          setData((prevData) => [...prevData, ...newData]);
+        }
+
+        // Update pagination state
+        setPageIndex(page);
+        setHasMore(responseData.pagination.hasMore);
+
+        if (responseData.pagination.totalCount !== null) {
+          setTotalCount(responseData.pagination.totalCount);
+        }
       } else {
         throw new Error(responseData.error || "Failed to fetch casting orders");
       }
     } catch (error) {
       console.error("Error fetching casting orders:", error);
       throw error;
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
+
+  // Add this new function to load more data
+  const loadMoreData = () => {
+    // console.log("load more called")
+    if (!isLoadingMore && hasMore) {
+      fetchCastingOrders(pageIndex + 1);
     }
   };
 
@@ -137,7 +187,7 @@ export default function index() {
         const mappedUsers = userData.data.map((user) => ({
           id: user.userID || user.id,
           name: user.fullName || user.name,
-          operationTypeID: user.operationTypeID
+          operationTypeID: user.operationTypeID,
         }));
         const filtered = mappedUsers.filter(
           (user) => user.operationTypeID === "2"
@@ -193,23 +243,24 @@ export default function index() {
   //     item.user?.toLowerCase().includes(search.toLowerCase())
   // );
 
-    const filteredData = (data || []).filter((item) => {
-  // First filter by search term
-  const matchesSearch = item.client?.toLowerCase().includes(search.toLowerCase()) ||
+  const filteredData = (data || []).filter((item) => {
+    // First filter by search term
+    const matchesSearch =
+      item.client?.toLowerCase().includes(search.toLowerCase()) ||
       item.product?.toLowerCase().includes(search.toLowerCase()) ||
-      item.user?.toLowerCase().includes(search.toLowerCase())
-  
-  // Then filter by status
-  let matchesStatus = true;
-  if (activeFilter === 'Pending') {
-    matchesStatus = item?.status?.toLowerCase() === 'pending';
-  } else if (activeFilter === 'Completed') {
-    matchesStatus = item?.status?.toLowerCase() === 'completed';
-  }
-  // For 'All', matchesStatus remains true
-  
-  return matchesSearch && matchesStatus;
-});
+      item.user?.toLowerCase().includes(search.toLowerCase());
+
+    // Then filter by status
+    let matchesStatus = true;
+    if (activeFilter === "Pending") {
+      matchesStatus = item?.status?.toLowerCase() === "pending";
+    } else if (activeFilter === "Completed") {
+      matchesStatus = item?.status?.toLowerCase() === "completed";
+    }
+    // For 'All', matchesStatus remains true
+
+    return matchesSearch && matchesStatus;
+  });
 
   const handleStatusChange = async (id, status) => {
     try {
@@ -335,7 +386,7 @@ export default function index() {
 
       if (result.success) {
         // Refresh the casting orders data
-        await fetchCastingOrders();
+        await fetchCastingOrders(0, true);;
 
         // alert(editingId ? "Order updated successfully!" : "Order created successfully!");
         handleGoBack();
@@ -407,6 +458,7 @@ export default function index() {
       if (result.success) {
         // Remove from local state
         setData((prev) => prev.filter((item) => item.id !== deleteId));
+        await fetchCastingOrders(0, true);
         // alert("Order deleted successfully!");
       } else {
         throw new Error(result.error || "Failed to delete order");
@@ -670,16 +722,16 @@ export default function index() {
             value={search}
             onChange={handleSearch}
           />
-          {user.isAdmin && 
-          <button
-            onClick={handleAddOrder}
-            className={`bg-blue-900 text-white px-4 py-2 rounded flex items-center justify-center gap-2 whitespace-nowrap order-1 sm:order-2 `}
-          >
-            <Plus size={16} />
-            <span className="hidden sm:inline">Add Order</span>
-            <span className="sm:hidden">Add Order</span>
-          </button>
-          }
+          {user.isAdmin && (
+            <button
+              onClick={handleAddOrder}
+              className={`bg-blue-900 text-white px-4 py-2 rounded flex items-center justify-center gap-2 whitespace-nowrap order-1 sm:order-2 `}
+            >
+              <Plus size={16} />
+              <span className="hidden sm:inline">Add Order</span>
+              <span className="sm:hidden">Add Order</span>
+            </button>
+          )}
         </div>
         {/* Filter Buttons */}
         <div className="flex gap-2 mb-4 flex-wrap">
@@ -716,155 +768,188 @@ export default function index() {
         </div>
       </div>
 
-      {/* Desktop Table View */}
-      <div className="hidden lg:block overflow-x-auto">
-        <table className="min-w-full table-auto border-collapse">
-          <thead>
-            <tr className="bg-gray-100 text-left">
-              <th className="p-3 font-medium">Casting Order ID</th>
-              <th className="p-3 font-medium">Client Name</th>
-              <th className="p-3 font-medium">User Name</th>
-              <th className="p-3 font-medium">Product</th>
-              <th className="p-3 font-medium">Product Qty</th>
-              <th className="p-3 font-medium">Size</th>
-              <th className="p-3 font-medium">Status</th>
-              <th className="p-3 font-medium">Order Date</th>
-              <th className={`p-3 font-medium ${user.operationTypeID == 2 ? "hidden" : ""}`}>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredData.length > 0 ? (
-              filteredData.map((row) => (
-                <tr key={row.id} className="border-t-[0.5px]">
-                  <td className="p-3">{row.id}</td>
-                  <td className="p-3">{row.client || "N/A"}</td>
-                  <td className="p-3">{row.user || "N/A"}</td>
-                  <td className="p-3">{row.product || "N/A"}</td>
-                  <td className="p-3">{row.qty}</td>
-                  <td className="p-3">{row.size}</td>
-                  <td className="p-3">
-                    <select
-                      value={row.status}
-                      onChange={(e) =>
-                        handleStatusChange(row.id, e.target.value)
-                      }
-                      disabled={user.operationTypeID == 2 }
-                      className="border px-2 py-1 rounded"
-                    >
-                      <option value="pending">🔴 Pending</option>
-                      <option value="completed">🟢 Completed</option>
-                    </select>
-                  </td>
-                  <td className="p-3">{row.orderDate}</td>
-                  <td className={`p-3 ${user.operationTypeID == 2 ? "hidden" : ""}`}>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => handleEdit(row)}
-                        className="text-blue-600 hover:underline cursor-pointer"
-                      >
-                        <Pencil size={16} />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(row.id)}
-                        className="text-red-600 hover:underline cursor-pointer"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="9" className="text-center p-4 text-gray-500">
-                  No matching records found.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+<div className="hidden lg:block">
+  <InfiniteScroll
+    dataLength={filteredData.length}
+    next={loadMoreData}
+    hasMore={hasMore}
+    loader={
+      <div className="text-center py-4">
+        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-900 mx-auto"></div>
+        <span className="text-sm text-gray-500 mt-2">Loading more...</span>
       </div>
-
-      {/* Mobile/Tablet Card View */}
-      <div className="lg:hidden space-y-4">
-        {filteredData.length > 0 ? (
-          filteredData.map((row) => (
-            <div key={row.id} className="border rounded-lg p-4 bg-gray-50">
-              {/* Card Header */}
-              <div className="flex justify-between items-start mb-3">
-                <div>
-                  <div className="font-semibold text-sm text-gray-600">
-                    Casting Order ID
-                  </div>
-                  <div className="font-medium">{row.id}</div>
-                </div>
-                <div className={`flex gap-2 ${user.operationTypeID == 2 ? "hidden" : ""}`}>
-                  <button
-                    onClick={() => handleEdit(row)}
-                    className="text-blue-600 hover:bg-blue-50 p-2 rounded cursor-pointer"
-                  >
-                    <Pencil size={16} />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(row.id)}
-                    className="text-red-600 hover:bg-red-50 p-2 rounded cursor-pointer"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-              </div>
-
-              {/* Card Content - 2 Column Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                <div>
-                  <span className="font-medium text-gray-600">
-                    Client Name :
-                  </span>
-                  <div>{row.client || "N/A"}</div>
-                </div>
-                <div>
-                  <span className="font-medium text-gray-600">User Name :</span>
-                  <div>{row.user || "N/A"}</div>
-                </div>
-                <div>
-                  <span className="font-medium text-gray-600">Product :</span>
-                  <div>{row.product || "N/A"}</div>
-                </div>
-                <div>
-                  <span className="font-medium text-gray-600">Quantity :</span>
-                  <div>{row.qty}</div>
-                </div>
-                <div>
-                  <span className="font-medium text-gray-600">Size :</span>
-                  <div>{row.size}</div>
-                </div>
-                <div>
-                  <span className="font-medium text-gray-600">
-                    Order Date :
-                  </span>
-                  <div>{row.orderDate}</div>
-                </div>
-                <div className="sm:col-span-2">
-                  <span className="font-medium text-gray-600">Status :</span>
+    }
+    endMessage={
+      <div className="text-center py-4 text-gray-500 text-sm">
+        {totalCount > 0 && `Total ${totalCount} orders loaded`}
+      </div>
+    }
+    scrollableTarget="desktopDiv"
+  >
+    <div className="overflow-x-auto" style={{ maxHeight: 'calc(100vh - 400px)' }} id="desktopDiv">
+      <table className="min-w-full table-auto border-collapse">
+        <thead>
+          <tr className="bg-gray-100 text-left">
+            <th className="p-3 font-medium">Casting Order ID</th>
+            <th className="p-3 font-medium">Client Name</th>
+            <th className="p-3 font-medium">User Name</th>
+            <th className="p-3 font-medium">Product</th>
+            <th className="p-3 font-medium">Product Qty</th>
+            <th className="p-3 font-medium">Size</th>
+            <th className="p-3 font-medium">Status</th>
+            <th className="p-3 font-medium">Order Date</th>
+            <th className={`p-3 font-medium ${user.operationTypeID == 2 ? "hidden" : ""}`}>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {filteredData.length > 0 ? (
+            filteredData.map((row) => (
+              <tr key={row.id} className="border-t-[0.5px]">
+                <td className="p-3">{row.id}</td>
+                <td className="p-3">{row.client || "N/A"}</td>
+                <td className="p-3">{row.user || "N/A"}</td>
+                <td className="p-3">{row.product || "N/A"}</td>
+                <td className="p-3">{row.qty}</td>
+                <td className="p-3">{row.size}</td>
+                <td className="p-3">
                   <select
                     value={row.status}
                     onChange={(e) => handleStatusChange(row.id, e.target.value)}
-                    disabled={user.operationTypeID == 2 }
-                    className="border px-3 py-1 rounded mt-1 w-full"
+                    disabled={user.operationTypeID == 2}
+                    className="border px-2 py-1 rounded"
                   >
                     <option value="pending">🔴 Pending</option>
                     <option value="completed">🟢 Completed</option>
                   </select>
+                </td>
+                <td className="p-3">{row.orderDate}</td>
+                <td className={`p-3 ${user.operationTypeID == 2 ? "hidden" : ""}`}>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleEdit(row)}
+                      className="text-blue-600 hover:underline cursor-pointer"
+                    >
+                      <Pencil size={16} />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(row.id)}
+                      className="text-red-600 hover:underline cursor-pointer"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan="9" className="text-center p-4 text-gray-500">
+                No matching records found.
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+  </InfiniteScroll>
+</div>
+
+{/* Mobile/Tablet Card View with Infinite Scroll */}
+<div className="lg:hidden" >
+  <InfiniteScroll
+    dataLength={filteredData.length}
+    next={loadMoreData}
+    hasMore={hasMore}
+    loader={
+      <div className="text-center py-4">
+        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-900 mx-auto"></div>
+        <span className="text-sm text-gray-500 mt-2">Loading more...</span>
+      </div>
+    }
+    endMessage={
+      <div className="text-center py-4 text-gray-500 text-sm">
+        {totalCount > 0 && `Total ${totalCount} orders loaded`}
+      </div>
+    }
+    scrollableTarget="mobileDiv"
+  >
+    <div className="space-y-4" id="mobileDiv" style={{ maxHeight: 'calc(100vh - 300px)', overflow: 'auto' }}>
+      {filteredData.length > 0 ? (
+        filteredData.map((row) => (
+          <div key={row.id} className="border rounded-lg p-4 bg-gray-50">
+            {/* Existing card content remains the same */}
+            <div className="flex justify-between items-start mb-3">
+              <div>
+                <div className="font-semibold text-sm text-gray-600">
+                  Casting Order ID
                 </div>
+                <div className="font-medium">{row.id}</div>
+              </div>
+              <div className={`flex gap-2 ${user.operationTypeID == 2 ? "hidden" : ""}`}>
+                <button
+                  onClick={() => handleEdit(row)}
+                  className="text-blue-600 hover:bg-blue-50 p-2 rounded cursor-pointer"
+                >
+                  <Pencil size={16} />
+                </button>
+                <button
+                  onClick={() => handleDelete(row.id)}
+                  className="text-red-600 hover:bg-red-50 p-2 rounded cursor-pointer"
+                >
+                  <Trash2 size={16} />
+                </button>
               </div>
             </div>
-          ))
-        ) : (
-          <div className="text-center p-8 text-gray-500 border rounded-lg">
-            No matching records found.
+
+            {/* Rest of card content remains the same */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+              <div>
+                <span className="font-medium text-gray-600">Client Name :</span>
+                <div>{row.client || "N/A"}</div>
+              </div>
+              <div>
+                <span className="font-medium text-gray-600">User Name :</span>
+                <div>{row.user || "N/A"}</div>
+              </div>
+              <div>
+                <span className="font-medium text-gray-600">Product :</span>
+                <div>{row.product || "N/A"}</div>
+              </div>
+              <div>
+                <span className="font-medium text-gray-600">Quantity :</span>
+                <div>{row.qty}</div>
+              </div>
+              <div>
+                <span className="font-medium text-gray-600">Size :</span>
+                <div>{row.size}</div>
+              </div>
+              <div>
+                <span className="font-medium text-gray-600">Order Date :</span>
+                <div>{row.orderDate}</div>
+              </div>
+              <div className="sm:col-span-2">
+                <span className="font-medium text-gray-600">Status :</span>
+                <select
+                  value={row.status}
+                  onChange={(e) => handleStatusChange(row.id, e.target.value)}
+                  disabled={user.operationTypeID == 2}
+                  className="border px-3 py-1 rounded mt-1 w-full"
+                >
+                  <option value="pending">🔴 Pending</option>
+                  <option value="completed">🟢 Completed</option>
+                </select>
+              </div>
+            </div>
           </div>
-        )}
-      </div>
+        ))
+      ) : (
+        <div className="text-center p-8 text-gray-500 border rounded-lg">
+          No matching records found.
+        </div>
+      )}
+    </div>
+  </InfiniteScroll>
+</div>
 
       {/* Footer */}
       <div className="mt-6 text-xs sm:text-sm text-gray-500 text-center">

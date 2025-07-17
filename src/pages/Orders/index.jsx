@@ -194,11 +194,11 @@ export default function index() {
   const loadMoreOrders = useCallback(() => {
     if (isLoadingMore || !pagination.hasMore) return;
 
-    console.log("Loading more orders...", {
-      currentPage: pagination.pageIndex,
-      hasMore: pagination.hasMore,
-      isLoading: isLoadingMore,
-    });
+    // console.log("Loading more orders...", {
+    //   currentPage: pagination.pageIndex,
+    //   hasMore: pagination.hasMore,
+    //   isLoading: isLoadingMore,
+    // });
 
     setIsLoadingMore(true);
     fetchOrders(pagination.pageIndex + 1, true).finally(() =>
@@ -287,7 +287,7 @@ export default function index() {
 
   // effect for operationType and allUsers to filter assigned users
   useEffect(() => {
-    console.log(data);
+    // console.log(data);
     if (formData.operationType && allUsers.length > 0) {
       // Filter users based on selected operation type
       const filtered = allUsers.filter(
