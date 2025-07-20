@@ -1362,7 +1362,7 @@ export default function index() {
 
       {/* Desktop Table View */}
       <div className="hidden lg:block">
-        <InfiniteScroll
+        {/* <InfiniteScroll
           dataLength={filteredData.length}
           next={loadMoreOrders}
           hasMore={pagination.hasMore}
@@ -1382,7 +1382,7 @@ export default function index() {
           scrollableTarget="scrollableDiv"
           scrollThreshold={0.5}
           style={{ overflow: "hidden" }}
-        >
+        > */}
           <div
             id="scrollableDiv"
             className="overflow-y-auto"
@@ -1446,7 +1446,7 @@ export default function index() {
               </tbody>
             </table>
           </div>
-        </InfiniteScroll>
+        {/* </InfiniteScroll> */}
       </div>
 
       {/* Mobile/Tablet Card View */}
@@ -1456,7 +1456,7 @@ export default function index() {
           className="overflow-y-auto"
           style={{ height: "calc(100vh - 300px)" }}
         >
-          <InfiniteScroll
+          {/* <InfiniteScroll
             dataLength={filteredData.length}
             next={loadMoreOrders}
             hasMore={pagination.hasMore}
@@ -1476,7 +1476,7 @@ export default function index() {
             scrollableTarget="mobileScrollableDiv"
             scrollThreshold={0.8}
             style={{ overflow: "hidden" }}
-          >
+          > */}
             <div className="space-y-4">
               {filteredData.length > 0 ? (
                 filteredData.map((row) => (
@@ -1562,7 +1562,7 @@ export default function index() {
                 </div>
               )}
             </div>
-          </InfiniteScroll>
+          {/* </InfiniteScroll> */}
         </div>
       </div>
 

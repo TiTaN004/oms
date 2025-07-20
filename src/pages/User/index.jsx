@@ -131,10 +131,17 @@ export default function index() {
         !formData.userName ||
         !formData.mobileNo ||
         !formData.password ||
-        !formData.operationTypeID ||
-        !formData.emailID
+        !formData.operationTypeID
       ) {
         alert("Please fill in all required fields.");
+        return;
+      }
+      else if (!/^[6-9]\d{9}$/.test(formData.mobileNo)) {
+        alert("Please enter a valid 10-digit Indian mobile number.");
+        return;
+      }
+      else if (!/^\d{4}$/.test(formData.password)) {
+        alert("Please enter a valid 4-digit numeric password");
         return;
       }
       // Get selected names for display
@@ -173,6 +180,12 @@ export default function index() {
           body: JSON.stringify(updatedUser),
         });
 
+        const data = await response.json()
+
+        if(data.statusCode == 400){
+          alert(`error ${data.message}` )
+        }
+
         setData((prev) =>
           prev.map((item) => (item.userID === editingId ? updatedUser : item))
         );
@@ -195,6 +208,12 @@ export default function index() {
           },
           body: JSON.stringify(newUser),
         });
+
+        const data = await response.json()
+
+        if(data.statusCode == 400){
+          alert(`error ${data.message}` )
+        }
 
         setData((prev) => [...prev, newUser]);
       }

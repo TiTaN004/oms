@@ -248,6 +248,7 @@ export default function index() {
     const matchesSearch =
       item.client?.toLowerCase().includes(search.toLowerCase()) ||
       item.product?.toLowerCase().includes(search.toLowerCase()) ||
+      item.id?.toLowerCase().includes(search.toLowerCase()) ||
       item.user?.toLowerCase().includes(search.toLowerCase());
 
     // Then filter by status
