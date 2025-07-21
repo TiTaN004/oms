@@ -30,10 +30,11 @@ import OperationType from "../pages/OperationTypeMaster";
 import Report from "../pages/Report";
 import logo from "../assets/OTPlogo.png";
 import ProtectedRoute, { useAuth, useRouteGuard } from "../pages/login/ProtectedRoute";
+import Test from "../pages/Test";
 
 export default function Sidebar() {
   const { user, logout, isLoading } = useAuth();
-  const [isCollapsed, setIsCollapsed] = useState(true);
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const userName = user?.fullName || "User";
@@ -283,6 +284,8 @@ export default function Sidebar() {
             <Route path="/client-master" element={<ProtectedRoute adminOnly={true}> <ClientMaster /></ProtectedRoute>} />
             <Route path="/operation-type" element={<ProtectedRoute adminOnly={true}> <OperationType /></ProtectedRoute>} />
             <Route path="/report" element={<ProtectedRoute adminOnly={true}> <Report /></ProtectedRoute>} />
+            <Route path="/test" element={<ProtectedRoute adminOnly={true}> <Test /></ProtectedRoute>} />
+
           </Routes>
         </main>
       </div>

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Plus, Pencil, Trash2, ArrowLeft, Save } from "lucide-react";
 import API_ENDPOINTS from "../../utils/apiConfig";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 // const sampleData = [
 //   {
 //     userID: 5,
@@ -48,11 +48,15 @@ export default function index() {
     emailID: "",
   });
 
-  const nav = useNavigate();
-
   // Dropdown data states
   const [userType, setUserType] = useState();
   const [loading, setLoading] = useState(true);
+
+    const nav = useNavigate();
+  const location = useLocation();
+
+  const {uri, fData} = location.state || {}
+
 
   // Fetch dropdown data from PHP backend
   useEffect(() => {
@@ -80,6 +84,9 @@ export default function index() {
 
       const typeData = await resType.json();
       setUserType(typeData.data);
+      if(uri != undefined && fData != undefined){
+      handleAddOrder()
+    }
     } catch (error) {
       console.error("Error fetching dropdown data:", error);
     } finally {
@@ -111,6 +118,10 @@ export default function index() {
       emailID: "",
     });
     setEditingId(null);
+     if(uri != undefined && fData != undefined){
+      nav(`${uri}`, {state: {fdata: fData}})
+    }
+
   };
 
   const handleFormChange = (e) => {

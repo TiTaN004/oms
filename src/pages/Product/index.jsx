@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Plus, Pencil, Trash2, ArrowLeft, Save } from "lucide-react";
 import API_ENDPOINTS from "../../utils/apiConfig";
+import { useLocation, useNavigate } from "react-router-dom";
 
 export default function ProductManagement() {
   const [search, setSearch] = useState("");
@@ -17,9 +18,21 @@ export default function ProductManagement() {
   const [loading, setLoading] = useState(false);
   const [imageFile, setImageFile] = useState(null);
 
+  // Navigation hook
+
+  const nav = useNavigate();
+  const location = useLocation();
+
+  const {uri, fData} = location.state || {}
+
   // Fetch products from API
   useEffect(() => {
     fetchProducts();
+
+    if(uri != undefined && fData != undefined){
+      handleAddProduct()
+    }
+
   }, []);
 
   const fetchProducts = async () => {
@@ -59,6 +72,10 @@ export default function ProductManagement() {
     });
     setImageFile(null);
     setEditingId(null);
+     if(uri != undefined && fData != undefined){
+      nav(`${uri}`, {state: {fdata: fData}})
+    }
+
   };
 
   const handleFormChange = (e) => {

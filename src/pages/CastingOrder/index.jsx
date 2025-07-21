@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Plus, Pencil, Trash2, ArrowLeft, Save } from "lucide-react";
 import API_ENDPOINTS from "../../utils/apiConfig";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../login/ProtectedRoute";
 import InfiniteScroll from "react-infinite-scroll-component";
 
@@ -23,6 +23,9 @@ export default function index() {
     orderDate: new Date().toISOString().split("T")[0],
   });
 
+  // send url 
+  const [uri,setUri] = useState("/dashboard/casting-orders")
+
   // filter
   const [activeFilter, setActiveFilter] = useState("All");
 
@@ -37,6 +40,11 @@ export default function index() {
 
   // Navigation hook
   const nav = useNavigate();
+  const location = useLocation();
+
+  const {fdata} = location.state || {};
+
+  // console.log(fdata)
 
   // pagination
   const [hasMore, setHasMore] = useState(true);
@@ -45,9 +53,18 @@ export default function index() {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const pageSize = 10;
 
+  // const fromOtherPage = () => {
+  //   setShowAddForm()
+  // }
+
   // Fetch all data on component mount
   useEffect(() => {
     fetchAllData();
+
+    if(fdata != undefined){
+      setFormData(fdata)
+      handleAddOrder()
+    }
   }, []);
 
   const fetchAllData = async () => {
@@ -361,6 +378,8 @@ export default function index() {
         order_date: formData.orderDate,
       };
 
+      
+
       let response;
       let url = API_ENDPOINTS.CASTING_ORDERS;
       let method = "POST";
@@ -405,13 +424,13 @@ export default function index() {
   const handleAddNewItem = (type) => {
     if (type === "Client") {
       // Redirect to client creation page or show client creation form
-      nav("/dashboard/client-master");
+      nav("/dashboard/client-master",{state: {uri: uri,fData: formData}});
     } else if (type === "Product") {
       // Redirect to product creation page or show product creation form
-      nav("/dashboard/products");
+      nav("/dashboard/products",{state: {uri: uri,fData: formData}});
     } else if (type === "User") {
       // Redirect to user creation page or show user creation form
-      nav("/dashboard/user");
+      nav("/dashboard/user",{state: {uri: uri,fData: formData}});
     }
   };
 

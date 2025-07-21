@@ -14,7 +14,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import API_ENDPOINTS from "../../utils/apiConfig";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../login/ProtectedRoute";
 import InfiniteScroll from "react-infinite-scroll-component";
 
@@ -79,6 +79,12 @@ export default function index() {
 
   // navigation hook
   const nav = useNavigate();
+  const location = useLocation();
+
+  // send url
+  const [uri, setUri] = useState("/dashboard/orders");
+
+  const { fdata } = location.state || {};
 
   const { user } = useAuth();
 
@@ -86,6 +92,7 @@ export default function index() {
   useEffect(() => {
     fetchAllData();
     loadMoreOrders();
+
   }, []);
 
   const fetchAllData = async () => {
@@ -100,6 +107,10 @@ export default function index() {
         fetchOperationTypes(),
         fetchUsers(),
       ]);
+          if(fdata != undefined){
+      setFormData(fdata)
+      handleAddOrder()
+    }
     } catch (error) {
       console.error("Error fetching data:", error);
       alert("Failed to fetch data. Please try again.");
@@ -592,13 +603,13 @@ export default function index() {
 
   const handleAddNewItem = (type) => {
     if (type === "Client") {
-      nav("/dashboard/client-master");
+      nav("/dashboard/client-master",{state: {uri: uri,fData: formData}});
     } else if (type === "Product") {
-      nav("/dashboard/products");
+      nav("/dashboard/products",{state: {uri: uri,fData: formData}});
     } else if (type === "assignedUser") {
-      nav("/dashboard/user");
+      nav("/dashboard/user",{state: {uri: uri,fData: formData}});
     } else if (type === "operationType") {
-      nav("/dashboard/operation-type");
+      nav("/dashboard/operation-type",{state: {uri: uri,fData: formData}});
     }
   };
 
@@ -909,7 +920,7 @@ export default function index() {
           </option>
         ))}
       </select>
-      <div className="mt-1">
+      <div className={`mt-1 ${type === "productWeightType" || type === "text"? "hidden" : ""}`}>
         <button
           type="button"
           onClick={() => handleAddNewItem(type)}
@@ -1300,7 +1311,7 @@ export default function index() {
   }
 
   return (
-<div className="bg-white p-6 rounded shadow">
+    <div className="bg-white p-6 rounded shadow">
       {/* Header Section */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-4">
         <h2 className="text-lg font-semibold">Orders</h2>
@@ -1383,76 +1394,76 @@ export default function index() {
           scrollThreshold={0.5}
           style={{ overflow: "hidden" }}
         > */}
-          <div
-            id="scrollableDiv"
-            className="overflow-y-auto"
-            style={{ height: "70vh" }}
-          >
-            <table className="min-w-full table-auto border-collapse">
-              <thead>
-                <tr className="bg-gray-100 text-left ">
-                  <th className="p-3 font-medium">Order ID</th>
-                  <th className="p-3 font-medium">Client Name</th>
-                  <th className="p-3 font-medium">Operation Name</th>
-                  <th className="p-3 font-medium">Assgin to</th>
-                  <th className="p-3 font-medium">Product</th>
-                  <th className="p-3 font-medium">Product Qty</th>
-                  <th className="p-3 font-medium">Price</th>
-                  <th className="p-3 font-medium">Total Price</th>
-                  <th className="p-3 font-medium">Description</th>
-                  <th className="p-3 font-medium">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredData.length > 0 ? (
-                  filteredData.map((row) => (
-                    <tr key={row.id} className="border-t-[0.5px]">
-                      <td className="p-3">{row.orderNo}</td>
-                      <td className="p-3">{row.client}</td>
-                      <td className="p-3">{row.operationType}</td>
-                      <td className="p-3">{row.assignedUser}</td>
-                      <td className="p-3">{row.product}</td>
-                      <td className="p-3">{row.totalQty}</td>
-                      <td className="p-3">{row.pricePerQty}</td>
-                      <td className="p-3">{row.totalPrice}</td>
-                      <td className="p-3">{row.description}</td>
-                      <td className="p-3">
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => handleEdit(row)}
-                            className="text-blue-600 hover:underline cursor-pointer"
-                          >
-                            <Pencil size={16} />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(row.id)}
-                            className={`text-red-600 hover:underline cursor-pointer ${
-                              !user.isAdmin ? "hidden" : ""
-                            }`}
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan="10" className="text-center p-4 text-gray-500">
-                      No matching records found.
+        <div
+          id="scrollableDiv"
+          className="overflow-y-auto"
+          style={{ height: "70vh" }}
+        >
+          <table className="min-w-full table-auto border-collapse">
+            <thead>
+              <tr className="bg-gray-100 text-left ">
+                <th className="p-3 font-medium">Order ID</th>
+                <th className="p-3 font-medium">Client Name</th>
+                <th className="p-3 font-medium">Operation Name</th>
+                <th className="p-3 font-medium">Assgin to</th>
+                <th className="p-3 font-medium">Product</th>
+                <th className="p-3 font-medium">Product Qty</th>
+                <th className="p-3 font-medium">Price</th>
+                <th className="p-3 font-medium">Total Price</th>
+                <th className="p-3 font-medium">Description</th>
+                <th className="p-3 font-medium">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredData.length > 0 ? (
+                filteredData.map((row) => (
+                  <tr key={row.id} className="border-t-[0.5px]">
+                    <td className="p-3">{row.orderNo}</td>
+                    <td className="p-3">{row.client}</td>
+                    <td className="p-3">{row.operationType}</td>
+                    <td className="p-3">{row.assignedUser}</td>
+                    <td className="p-3">{row.product}</td>
+                    <td className="p-3">{row.totalQty}</td>
+                    <td className="p-3">{row.pricePerQty}</td>
+                    <td className="p-3">{row.totalPrice}</td>
+                    <td className="p-3">{row.description}</td>
+                    <td className="p-3">
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleEdit(row)}
+                          className="text-blue-600 hover:underline cursor-pointer"
+                        >
+                          <Pencil size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(row.id)}
+                          className={`text-red-600 hover:underline cursor-pointer ${
+                            !user.isAdmin ? "hidden" : ""
+                          }`}
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="10" className="text-center p-4 text-gray-500">
+                    No matching records found.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
         {/* </InfiniteScroll> */}
       </div>
 
       {/* Mobile/Tablet Card View */}
       <div className="lg:hidden">
-        <div 
-          id="mobileScrollableDiv" 
+        <div
+          id="mobileScrollableDiv"
           className="overflow-y-auto"
           style={{ height: "calc(100vh - 300px)" }}
         >
@@ -1477,91 +1488,93 @@ export default function index() {
             scrollThreshold={0.8}
             style={{ overflow: "hidden" }}
           > */}
-            <div className="space-y-4">
-              {filteredData.length > 0 ? (
-                filteredData.map((row) => (
-                  <div key={row.id} className="border rounded-lg p-4 bg-gray-50">
-                    {/* Card Header */}
-                    <div className="flex justify-between items-start mb-3">
-                      <div>
-                        <div className="font-semibold text-sm text-gray-600">
-                          Order ID
-                        </div>
-                        <div className="font-medium">{row.orderNo}</div>
+          <div className="space-y-4">
+            {filteredData.length > 0 ? (
+              filteredData.map((row) => (
+                <div key={row.id} className="border rounded-lg p-4 bg-gray-50">
+                  {/* Card Header */}
+                  <div className="flex justify-between items-start mb-3">
+                    <div>
+                      <div className="font-semibold text-sm text-gray-600">
+                        Order ID
                       </div>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleEdit(row)}
-                          className="text-blue-600 hover:bg-blue-50 p-2 rounded cursor-pointer"
-                        >
-                          <Pencil size={16} />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(row.id)}
-                          className={`text-red-600 hover:bg-red-50 p-2 rounded cursor-pointer ${
-                            !user.isAdmin ? "hidden" : ""
-                          }`}
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
+                      <div className="font-medium">{row.orderNo}</div>
                     </div>
-
-                    {/* Card Content - 2 Column Grid */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                      <div>
-                        <span className="font-medium text-gray-600">
-                          Client Name :
-                        </span>
-                        <div>{row.client}</div>
-                      </div>
-                      <div>
-                        <span className="font-medium text-gray-600">
-                          Operation Name :
-                        </span>
-                        <div>{row.operationType}</div>
-                      </div>
-                      <div>
-                        <span className="font-medium text-gray-600">
-                          Assign To :
-                        </span>
-                        <div>{row.assignedUser}</div>
-                      </div>
-                      <div>
-                        <span className="font-medium text-gray-600">Product :</span>
-                        <div>{row.product}</div>
-                      </div>
-                      <div>
-                        <span className="font-medium text-gray-600">
-                          Product Qty :
-                        </span>
-                        <div>{row.totalQty}</div>
-                      </div>
-                      <div>
-                        <span className="font-medium text-gray-600">Price :</span>
-                        <div>{row.pricePerQty}</div>
-                      </div>
-                      <div>
-                        <span className="font-medium text-gray-600">
-                          Total Price :
-                        </span>
-                        <div>{row.totalPrice}</div>
-                      </div>
-                      <div>
-                        <span className="font-medium text-gray-600">
-                          Description :
-                        </span>
-                        <div>{row.description}</div>
-                      </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleEdit(row)}
+                        className="text-blue-600 hover:bg-blue-50 p-2 rounded cursor-pointer"
+                      >
+                        <Pencil size={16} />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(row.id)}
+                        className={`text-red-600 hover:bg-red-50 p-2 rounded cursor-pointer ${
+                          !user.isAdmin ? "hidden" : ""
+                        }`}
+                      >
+                        <Trash2 size={16} />
+                      </button>
                     </div>
                   </div>
-                ))
-              ) : (
-                <div className="text-center p-8 text-gray-500 border rounded-lg">
-                  No matching records found.
+
+                  {/* Card Content - 2 Column Grid */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                    <div>
+                      <span className="font-medium text-gray-600">
+                        Client Name :
+                      </span>
+                      <div>{row.client}</div>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600">
+                        Operation Name :
+                      </span>
+                      <div>{row.operationType}</div>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600">
+                        Assign To :
+                      </span>
+                      <div>{row.assignedUser}</div>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600">
+                        Product :
+                      </span>
+                      <div>{row.product}</div>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600">
+                        Product Qty :
+                      </span>
+                      <div>{row.totalQty}</div>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600">Price :</span>
+                      <div>{row.pricePerQty}</div>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600">
+                        Total Price :
+                      </span>
+                      <div>{row.totalPrice}</div>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600">
+                        Description :
+                      </span>
+                      <div>{row.description}</div>
+                    </div>
+                  </div>
                 </div>
-              )}
-            </div>
+              ))
+            ) : (
+              <div className="text-center p-8 text-gray-500 border rounded-lg">
+                No matching records found.
+              </div>
+            )}
+          </div>
           {/* </InfiniteScroll> */}
         </div>
       </div>

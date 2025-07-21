@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Plus, Pencil, Trash2, ArrowLeft, Save } from "lucide-react";
 import API_ENDPOINTS from "../../utils/apiConfig";
+import { useLocation, useNavigate } from "react-router-dom";
 const sampleData = [
   {
     id: 5,
@@ -27,9 +28,21 @@ export default function index() {
   });
   const [loading, setLoading] = useState(false);
 
+    // Navigation hook
+  const nav = useNavigate();
+  const location = useLocation();
+
+  const {uri, fData} = location.state || {}
+
+  // console.log("uri", uri, "fdata", fData)
+
   // Fetch dropdown data from PHP backend
   useEffect(() => {
     fetchClientData();
+    if(uri != undefined && fData != undefined){
+      handleAddOrder()
+    }
+
   }, []);
 
   const fetchClientData = async () => {
@@ -64,6 +77,9 @@ export default function index() {
       isActive: "",
     });
     setEditingId(null);
+    if(uri != undefined && fData != undefined){
+      nav(`${uri}`, {state: {fdata: fData}})
+    }
   };
 
   const handleFormChange = (e) => {
