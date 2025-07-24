@@ -34,7 +34,7 @@ import Test from "../pages/Test";
 
 export default function Sidebar() {
   const { user, logout, isLoading } = useAuth();
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(window.innerWidth < 768 ? true : false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const userName = user?.fullName || "User";

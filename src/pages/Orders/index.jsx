@@ -649,13 +649,19 @@ export default function index() {
       const assignedToId =
         assignedTo.find((p) => p.id === o.fUserAssignID)?.id || "";
 
+        // date
+
+        const dateObj = new Date(o.orderOnRaw || o.orderOn);
+const formattedDate = `${dateObj.getFullYear()}-${String(
+  dateObj.getMonth() + 1
+).padStart(2, "0")}-${String(dateObj.getDate()).padStart(2, "0")}`;
+
+
       // Set form data with full fields
       setFormData({
         client: clientId.toString(),
         product: productId.toString(),
-        orderDate: new Date(o.orderOnRaw || o.orderOn)
-          .toISOString()
-          .split("T")[0],
+        orderDate: formattedDate,
         weight: o.weight,
         weightType: weightTypeId.toString(),
         productWeight: o.productWeight,
@@ -956,7 +962,7 @@ export default function index() {
         <div className="space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {/* Client Dropdown */}
-            <div>
+            {user.isAdmin && <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Client Name *
               </label>
@@ -968,7 +974,7 @@ export default function index() {
                 placeholder="Select Client"
                 type="Client"
               />
-            </div>
+            </div>}
 
             {/* Product Dropdown */}
             <div>
@@ -1094,7 +1100,7 @@ export default function index() {
               <input
                 type="text"
                 name="pricePerQty"
-                disabled={!user.isAdmin ? true : false}
+                // disabled={!user.isAdmin ? true : false}
                 value={formData.pricePerQty}
                 onChange={handleFormChange}
                 className="w-full border rounded px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
@@ -1129,6 +1135,7 @@ export default function index() {
               <input
                 type="text"
                 name="description"
+                disabled={formData.status == "Completed" ? true : false}
                 value={formData.description}
                 onChange={handleFormChange}
                 className="w-full border rounded px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500"
@@ -1235,12 +1242,12 @@ export default function index() {
 
                     {/* Card Content - 2 Column Grid */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                      <div>
+                      {/* <div>
                         <span className="font-medium text-gray-600">
                           Client Name :
                         </span>
                         <div>{row.clientName}</div>
-                      </div>
+                      </div> */}
                       <div>
                         <span className="font-medium text-gray-600">
                           Operation Name :
@@ -1403,7 +1410,7 @@ export default function index() {
             <thead>
               <tr className="bg-gray-100 text-left ">
                 <th className="p-3 font-medium">Order ID</th>
-                <th className="p-3 font-medium">Client Name</th>
+                {/* <th className="p-3 font-medium">Client Name</th> */}
                 <th className="p-3 font-medium">Operation Name</th>
                 <th className="p-3 font-medium">Assgin to</th>
                 <th className="p-3 font-medium">Product</th>
@@ -1419,7 +1426,7 @@ export default function index() {
                 filteredData.map((row) => (
                   <tr key={row.id} className="border-t-[0.5px]">
                     <td className="p-3">{row.orderNo}</td>
-                    <td className="p-3">{row.client}</td>
+                    {/* <td className="p-3">{row.client}</td> */}
                     <td className="p-3">{row.operationType}</td>
                     <td className="p-3">{row.assignedUser}</td>
                     <td className="p-3">{row.product}</td>
@@ -1520,12 +1527,12 @@ export default function index() {
 
                   {/* Card Content - 2 Column Grid */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                    <div>
+                    {/* <div>
                       <span className="font-medium text-gray-600">
                         Client Name :
                       </span>
                       <div>{row.client}</div>
-                    </div>
+                    </div> */}
                     <div>
                       <span className="font-medium text-gray-600">
                         Operation Name :
