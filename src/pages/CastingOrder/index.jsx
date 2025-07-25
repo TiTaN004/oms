@@ -768,7 +768,7 @@ export default function index() {
           <button
             onClick={() => setActiveFilter("Pending")}
             className={`px-4 py-2 rounded transition-colors ${
-              activeFilter === "Processing"
+              activeFilter === "Pending"
                 ? "bg-blue-900 text-white"
                 : "bg-gray-200 text-gray-700 hover:bg-gray-300"
             }`}
