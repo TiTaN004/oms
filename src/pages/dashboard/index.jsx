@@ -235,9 +235,9 @@ export default function Dashboard() {
                   <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Order No
                   </th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {user.isAdmin && <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Client
-                  </th>
+                  </th>}
                   <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Product
                   </th>
@@ -264,9 +264,9 @@ export default function Dashboard() {
                     <td className="px-4 py-2 whitespace-nowrap text-sm font-medium text-gray-900">
                       {order.orderNo}
                     </td>
-                    <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
+                    {user.isAdmin && <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
                       {order.clientName}
-                    </td>
+                    </td>}
                     <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
                       {order.productName}
                     </td>
@@ -305,7 +305,7 @@ export default function Dashboard() {
                   <div className="flex justify-between items-start mb-3">
                     <div>
                       <h3 className="font-semibold text-gray-900">{order.orderNo}</h3>
-                      <p className="text-sm text-gray-600">{order.clientName}</p>
+                      {user.isAdmin && <p className="text-sm text-gray-600">{order.clientName}</p>}
                     </div>
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                       order.status === 'Completed' 
@@ -350,7 +350,7 @@ export default function Dashboard() {
                   <div className="flex justify-between items-start mb-3">
                     <div className="flex-1">
                       <h3 className="font-semibold text-gray-900 text-lg">{order.orderNo}</h3>
-                      <p className="text-gray-600 mt-1">{order.clientName}</p>
+                      {user.isAdmin && <p className="text-gray-600 mt-1">{order.clientName}</p>}
                     </div>
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ml-2 ${
                       order.status === 'Completed' 

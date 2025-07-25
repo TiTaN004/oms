@@ -408,6 +408,7 @@ export default function index() {
       assignedUser: "",
       status: 0, // Reset to numeric default
     });
+    setOrderHistory([])
     setEditingId(null);
   };
 
@@ -926,7 +927,7 @@ const formattedDate = `${dateObj.getFullYear()}-${String(
           </option>
         ))}
       </select>
-      <div className={`mt-1 ${type === "productWeightType" || type === "text"? "hidden" : ""}`}>
+      {user.isAdmin && <div className={`mt-1 ${type === "productWeightType" || type === "text"? "hidden" : ""}`}>
         <button
           type="button"
           onClick={() => handleAddNewItem(type)}
@@ -935,7 +936,7 @@ const formattedDate = `${dateObj.getFullYear()}-${String(
           <Plus size={12} />
           Add New {type}
         </button>
-      </div>
+      </div>}
     </div>
   );
   {
@@ -1410,7 +1411,7 @@ const formattedDate = `${dateObj.getFullYear()}-${String(
             <thead>
               <tr className="bg-gray-100 text-left ">
                 <th className="p-3 font-medium">Order ID</th>
-                {/* <th className="p-3 font-medium">Client Name</th> */}
+                {user.isAdmin && <th className="p-3 font-medium">Client Name</th>}
                 <th className="p-3 font-medium">Operation Name</th>
                 <th className="p-3 font-medium">Assgin to</th>
                 <th className="p-3 font-medium">Product</th>
@@ -1426,7 +1427,7 @@ const formattedDate = `${dateObj.getFullYear()}-${String(
                 filteredData.map((row) => (
                   <tr key={row.id} className="border-t-[0.5px]">
                     <td className="p-3">{row.orderNo}</td>
-                    {/* <td className="p-3">{row.client}</td> */}
+                    {user.isAdmin && <td className="p-3">{row.client}</td>}
                     <td className="p-3">{row.operationType}</td>
                     <td className="p-3">{row.assignedUser}</td>
                     <td className="p-3">{row.product}</td>
@@ -1527,12 +1528,12 @@ const formattedDate = `${dateObj.getFullYear()}-${String(
 
                   {/* Card Content - 2 Column Grid */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                    {/* <div>
+                    {user.isAdmin && <div>
                       <span className="font-medium text-gray-600">
                         Client Name :
                       </span>
                       <div>{row.client}</div>
-                    </div> */}
+                    </div>}
                     <div>
                       <span className="font-medium text-gray-600">
                         Operation Name :

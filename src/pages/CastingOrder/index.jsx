@@ -587,7 +587,7 @@ export default function index() {
         <div className="space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {/* Client Dropdown */}
-            <div>
+            {user.isAdmin && <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Client Name *
               </label>
@@ -599,7 +599,7 @@ export default function index() {
                 placeholder="Select Client"
                 type="Client"
               />
-            </div>
+            </div>}
 
             {/* Product Dropdown */}
             <div>
@@ -811,7 +811,7 @@ export default function index() {
         <thead>
           <tr className="bg-gray-100 text-left">
             <th className="p-3 font-medium">Casting Order ID</th>
-            <th className="p-3 font-medium">Client Name</th>
+            {user.isAdmin && <th className="p-3 font-medium">Client Name</th>}
             <th className="p-3 font-medium">User Name</th>
             <th className="p-3 font-medium">Product</th>
             <th className="p-3 font-medium">Product Qty</th>
@@ -826,7 +826,7 @@ export default function index() {
             filteredData.map((row) => (
               <tr key={row.id} className="border-t-[0.5px]">
                 <td className="p-3">{row.id}</td>
-                <td className="p-3">{row.client || "N/A"}</td>
+                {user.isAdmin && <td className="p-3">{row.client || "N/A"}</td>}
                 <td className="p-3">{row.user || "N/A"}</td>
                 <td className="p-3">{row.product || "N/A"}</td>
                 <td className="p-3">{row.qty}</td>
@@ -923,10 +923,10 @@ export default function index() {
 
             {/* Rest of card content remains the same */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-              <div>
+              {user.isAdmin && <div>
                 <span className="font-medium text-gray-600">Client Name :</span>
                 <div>{row.client || "N/A"}</div>
-              </div>
+              </div>}
               <div>
                 <span className="font-medium text-gray-600">User Name :</span>
                 <div>{row.user || "N/A"}</div>
